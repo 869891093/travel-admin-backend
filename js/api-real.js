@@ -5,6 +5,11 @@ class RealAPI {
         this.baseUrl = 'https://travel-admin-backend-v2-178239-9-1372522107.sh.run.tcloudbase.com';
         this.isConnected = false;
         this.accessToken = null;
+        
+        // 初始化时尝试从本地存储加载token
+        if (typeof tokenManager !== 'undefined') {
+            tokenManager.loadTokenFromStorage();
+        }
     }
 
     // 测试连接
@@ -28,6 +33,44 @@ class RealAPI {
             console.error('API连接测试异常:', error);
             this.isConnected = false;
             return { success: false, message: error.message };
+        }
+    }
+
+    // 获取access_token
+    async getAccessToken() {
+        try {
+            if (typeof tokenManager !== 'undefined') {
+                const token = await tokenManager.getAccessToken();
+                if (token) {
+                    tokenManager.saveTokenToStorage();
+                    return token;
+                }
+            }
+            
+            // 如果没有token管理器，尝试从服务器获取
+            console.log('尝试从服务器获取access_token...');
+            const response = await fetch(`${this.baseUrl}/api/get-access-token`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    appid: 'YOUR_APPID',
+                    secret: 'YOUR_SECRET'
+                })
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.access_token) {
+                    return result.access_token;
+                }
+            }
+            
+            throw new Error('无法获取access_token');
+        } catch (error) {
+            console.error('获取access_token失败:', error);
+            return null;
         }
     }
 

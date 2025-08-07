@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Token 配置</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .config-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .token-info {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔑 Access Token 配置</h1>
+    
+    <div class="config-section">
+        <h3>📋 微信小程序配置</h3>
+        <div class="form-group">
+            <label for="appId">AppID:</label>
+            <input type="text" id="appId" placeholder="请输入您的微信小程序AppID">
+        </div>
+        <div class="form-group">
+            <label for="appSecret">AppSecret:</label>
+            <input type="password" id="appSecret" placeholder="请输入您的微信小程序AppSecret">
+        </div>
+        <button class="btn btn-success" onclick="saveConfig()">保存配置</button>
+        <button class="btn" onclick="testToken()">测试Token获取</button>
+        <button class="btn" onclick="clearToken()">清除Token</button>
+        <div id="config-result" class="result"></div>
+    </div>
+
+    <div class="config-section">
+        <h3>🔍 Token 状态</h3>
+        <div class="token-info">
+            <div><strong>当前Token:</strong> <span id="currentToken">未设置</span></div>
+            <div><strong>过期时间:</strong> <span id="expireTime">未设置</span></div>
+            <div><strong>状态:</strong> <span id="tokenStatus">未获取</span></div>
+        </div>
+        <button class="btn" onclick="refreshTokenStatus()">刷新状态</button>
+        <div id="status-result" class="result"></div>
+    </div>
+
+    <div class="config-section">
+        <h3>📖 使用说明</h3>
+        <ol>
+            <li>在微信公众平台获取您的AppID和AppSecret</li>
+            <li>填写配置信息并保存</li>
+            <li>点击"测试Token获取"验证配置</li>
+            <li>配置成功后，系统会自动管理access_token</li>
+        </ol>
+        <p><strong>注意:</strong> AppSecret是敏感信息，请妥善保管，不要泄露给他人。</p>
+    </div>
+
+    <script src="js/token-manager.js"></script>
+    <script>
+        // 页面加载时加载配置
+        window.onload = function() {
+            loadConfig();
+            refreshTokenStatus();
+        };
+
+        // 加载配置
+        function loadConfig() {
+            const appId = localStorage.getItem('appId') || '';
+            const appSecret = localStorage.getItem('appSecret') || '';
+            
+            document.getElementById('appId').value = appId;
+            document.getElementById('appSecret').value = appSecret;
+            
+            if (appId && appSecret) {
+                tokenManager.appId = appId;
+                tokenManager.appSecret = appSecret;
+            }
+        }
+
+        // 保存配置
+        function saveConfig() {
+            const appId = document.getElementById('appId').value.trim();
+            const appSecret = document.getElementById('appSecret').value.trim();
+            
+            if (!appId || !appSecret) {
+                showResult('config-result', '请填写完整的AppID和AppSecret', 'error');
+                return;
+            }
+            
+            localStorage.setItem('appId', appId);
+            localStorage.setItem('appSecret', appSecret);
+            
+            tokenManager.appId = appId;
+            tokenManager.appSecret = appSecret;
+            
+            showResult('config-result', '配置保存成功！', 'success');
+        }
+
+        // 测试Token获取
+        async function testToken() {
+            try {
+                showResult('config-result', '正在测试Token获取...', 'info');
+                
+                const token = await tokenManager.getAccessToken();
+                
+                if (token) {
+                    showResult('config-result', `Token获取成功！\nToken: ${token.substring(0, 20)}...`, 'success');
+                    refreshTokenStatus();
+                } else {
+                    showResult('config-result', 'Token获取失败，请检查配置', 'error');
+                }
+            } catch (error) {
+                showResult('config-result', `Token获取失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 清除Token
+        function clearToken() {
+            tokenManager.clearToken();
+            showResult('config-result', 'Token已清除', 'success');
+            refreshTokenStatus();
+        }
+
+        // 刷新Token状态
+        function refreshTokenStatus() {
+            const currentToken = tokenManager.accessToken;
+            const expireTime = tokenManager.tokenExpireTime;
+            
+            if (currentToken) {
+                document.getElementById('currentToken').textContent = currentToken.substring(0, 20) + '...';
+                document.getElementById('expireTime').textContent = new Date(expireTime).toLocaleString();
+                
+                if (Date.now() < expireTime) {
+                    document.getElementById('tokenStatus').textContent = '有效';
+                    document.getElementById('tokenStatus').style.color = '#28a745';
+                } else {
+                    document.getElementById('tokenStatus').textContent = '已过期';
+                    document.getElementById('tokenStatus').style.color = '#dc3545';
+                }
+            } else {
+                document.getElementById('currentToken').textContent = '未设置';
+                document.getElementById('expireTime').textContent = '未设置';
+                document.getElementById('tokenStatus').textContent = '未获取';
+                document.getElementById('tokenStatus').style.color = '#6c757d';
+            }
+        }
+
+        // 显示结果
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.textContent = message;
+        }
+    </script>
+</body>
+</html> 
