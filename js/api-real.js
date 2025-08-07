@@ -2,7 +2,8 @@
 class RealAPI {
     constructor() {
         this.envId = CONFIG.envId || 'new-travel-2gy6d6oy7ee5fb0e';
-        this.baseUrl = 'https://new-travel-2gy6d6oy7ee5fb0e-1372522107.ap-shanghai.app.tcloudbase.com';
+        // 使用当前域名作为baseUrl，避免跨域问题
+        this.baseUrl = window.location.origin;
         this.isConnected = false;
         this.accessToken = null;
         
@@ -16,18 +17,27 @@ class RealAPI {
     async testConnection() {
         try {
             console.log('=== 测试API连接 ===');
+            console.log('当前域名:', window.location.origin);
+            console.log('API地址:', `${this.baseUrl}/api/health`);
             
-            const response = await fetch(`${this.baseUrl}/api/health`);
-            const data = await response.json();
+            const response = await fetch(`${this.baseUrl}/api/health`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
             
-            if (data.status === 'ok') {
+            console.log('响应状态:', response.status);
+            
+            if (response.ok) {
+                const data = await response.json();
                 console.log('API连接测试成功:', data);
                 this.isConnected = true;
                 return { success: true, data: data };
             } else {
-                console.error('API连接测试失败:', data);
+                console.error('API连接测试失败:', response.status, response.statusText);
                 this.isConnected = false;
-                return { success: false, message: '服务响应异常' };
+                return { success: false, message: `HTTP ${response.status}: ${response.statusText}` };
             }
         } catch (error) {
             console.error('API连接测试异常:', error);
@@ -108,8 +118,9 @@ class RealAPI {
     async getProducts(query = {}) {
         try {
             console.log('获取产品数据...');
+            console.log('请求地址:', `${this.baseUrl}/api/direct-cloud`);
+            console.log('请求数据:', { envId: this.envId, action: 'get', collection: 'products', query: query });
             
-            // 尝试从真实API获取数据
             const response = await fetch(`${this.baseUrl}/api/direct-cloud`, {
                 method: 'POST',
                 headers: {
@@ -123,15 +134,23 @@ class RealAPI {
                 })
             });
             
+            console.log('响应状态:', response.status);
+            
             if (response.ok) {
                 const result = await response.json();
+                console.log('API响应:', result);
+                
                 if (result.success && result.data) {
                     console.log('获取产品数据成功:', result.data);
                     return result.data;
+                } else {
+                    throw new Error(result.error || 'API返回错误');
                 }
+            } else {
+                const errorText = await response.text();
+                console.error('HTTP错误:', response.status, errorText);
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
-            
-            throw new Error('无法从API获取产品数据');
         } catch (error) {
             console.error('获取产品数据失败:', error);
             throw error;

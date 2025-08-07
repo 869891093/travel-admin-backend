@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API调试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .debug-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 API调试工具</h1>
+    
+    <div class="debug-section">
+        <h3>📋 环境信息</h3>
+        <div id="env-info">
+            <p><strong>当前域名:</strong> <span id="current-domain"></span></p>
+            <p><strong>API基础地址:</strong> <span id="api-base"></span></p>
+            <p><strong>环境ID:</strong> <span id="env-id"></span></p>
+        </div>
+    </div>
+
+    <div class="debug-section">
+        <h3>🔍 API测试</h3>
+        <button class="btn" onclick="testHealth()">测试健康检查</button>
+        <button class="btn" onclick="testDirectCloud()">测试直接云开发</button>
+        <button class="btn btn-success" onclick="testAll()">测试所有API</button>
+        <div id="api-test-result" class="result"></div>
+    </div>
+
+    <div class="debug-section">
+        <h3>📊 数据测试</h3>
+        <button class="btn" onclick="testProducts()">测试产品数据</button>
+        <button class="btn" onclick="testRegions()">测试区域数据</button>
+        <button class="btn" onclick="testBanners()">测试轮播图数据</button>
+        <button class="btn" onclick="testOrders()">测试订单数据</button>
+        <div id="data-test-result" class="result"></div>
+    </div>
+
+    <div class="debug-section">
+        <h3>🔑 Token测试</h3>
+        <button class="btn" onclick="testToken()">测试Token获取</button>
+        <button class="btn btn-danger" onclick="clearResults()">清除结果</button>
+        <div id="token-test-result" class="result"></div>
+    </div>
+
+    <script>
+        // 页面加载时显示环境信息
+        window.onload = function() {
+            document.getElementById('current-domain').textContent = window.location.origin;
+            document.getElementById('api-base').textContent = window.location.origin;
+            document.getElementById('env-id').textContent = 'new-travel-2gy6d6oy7ee5fb0e';
+        };
+
+        // 测试健康检查
+        async function testHealth() {
+            const resultDiv = document.getElementById('api-test-result');
+            resultDiv.innerHTML = '<div class="info">🔄 正在测试健康检查...</div>';
+            
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<div class="success">✅ 健康检查成功\n${JSON.stringify(data, null, 2)}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ 健康检查失败\n状态: ${response.status}\n${JSON.stringify(data, null, 2)}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ 健康检查异常\n${error.message}</div>`;
+            }
+        }
+
+        // 测试直接云开发
+        async function testDirectCloud() {
+            const resultDiv = document.getElementById('api-test-result');
+            resultDiv.innerHTML = '<div class="info">🔄 正在测试直接云开发...</div>';
+            
+            try {
+                const response = await fetch('/api/direct-cloud', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        envId: 'new-travel-2gy6d6oy7ee5fb0e',
+                        action: 'testConnection'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<div class="success">✅ 直接云开发测试成功\n${JSON.stringify(data, null, 2)}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ 直接云开发测试失败\n状态: ${response.status}\n${JSON.stringify(data, null, 2)}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ 直接云开发测试异常\n${error.message}</div>`;
+            }
+        }
+
+        // 测试所有API
+        async function testAll() {
+            const resultDiv = document.getElementById('api-test-result');
+            resultDiv.innerHTML = '<div class="info">🔄 正在测试所有API...</div>';
+            
+            let results = [];
+            
+            // 测试健康检查
+            try {
+                const healthResponse = await fetch('/api/health');
+                const healthData = await healthResponse.json();
+                results.push(`健康检查: ${healthResponse.ok ? '✅ 成功' : '❌ 失败'}`);
+            } catch (error) {
+                results.push(`健康检查: ❌ 异常 - ${error.message}`);
+            }
+            
+            // 测试直接云开发
+            try {
+                const cloudResponse = await fetch('/api/direct-cloud', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        envId: 'new-travel-2gy6d6oy7ee5fb0e',
+                        action: 'testConnection'
+                    })
+                });
+                const cloudData = await cloudResponse.json();
+                results.push(`直接云开发: ${cloudResponse.ok ? '✅ 成功' : '❌ 失败'}`);
+            } catch (error) {
+                results.push(`直接云开发: ❌ 异常 - ${error.message}`);
+            }
+            
+            resultDiv.innerHTML = `<div class="info">📊 API测试结果:\n${results.join('\n')}</div>`;
+        }
+
+        // 测试产品数据
+        async function testProducts() {
+            const resultDiv = document.getElementById('data-test-result');
+            resultDiv.innerHTML = '<div class="info">🔄 正在测试产品数据...</div>';
+            
+            try {
+                const response = await fetch('/api/direct-cloud', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        envId: 'new-travel-2gy6d6oy7ee5fb0e',
+                        action: 'get',
+                        collection: 'products'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `<div class="success">✅ 产品数据获取成功\n数量: ${data.data ? data.data.length : 0}\n${JSON.stringify(data, null, 2)}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ 产品数据获取失败\n${JSON.stringify(data, null, 2)}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ 产品数据获取异常\n${error.message}</div>`;
+            }
+        }
+
+        // 测试区域数据
+        async function testRegions() {
+            const resultDiv = document.getElementById('data-test-result');
+            resultDiv.innerHTML = '<div class="info">🔄 正在测试区域数据...</div>';
+            
+            try {
+                const response = await fetch('/api/direct-cloud', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        envId: 'new-travel-2gy6d6oy7ee5fb0e',
+                        action: 'get',
+                        collection: 'regions'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `<div class="success">✅ 区域数据获取成功\n数量: ${data.data ? data.data.length : 0}\n${JSON.stringify(data, null, 2)}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ 区域数据获取失败\n${JSON.stringify(data, null, 2)}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ 区域数据获取异常\n${error.message}</div>`;
+            }
+        }
+
+        // 测试轮播图数据
+        async function testBanners() {
+            const resultDiv = document.getElementById('data-test-result');
+            resultDiv.innerHTML = '<div class="info">🔄 正在测试轮播图数据...</div>';
+            
+            try {
+                const response = await fetch('/api/direct-cloud', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        envId: 'new-travel-2gy6d6oy7ee5fb0e',
+                        action: 'get',
+                        collection: 'banners'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `<div class="success">✅ 轮播图数据获取成功\n数量: ${data.data ? data.data.length : 0}\n${JSON.stringify(data, null, 2)}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ 轮播图数据获取失败\n${JSON.stringify(data, null, 2)}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ 轮播图数据获取异常\n${error.message}</div>`;
+            }
+        }
+
+        // 测试订单数据
+        async function testOrders() {
+            const resultDiv = document.getElementById('data-test-result');
+            resultDiv.innerHTML = '<div class="info">🔄 正在测试订单数据...</div>';
+            
+            try {
+                const response = await fetch('/api/direct-cloud', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        envId: 'new-travel-2gy6d6oy7ee5fb0e',
+                        action: 'get',
+                        collection: 'orders'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `<div class="success">✅ 订单数据获取成功\n数量: ${data.data ? data.data.length : 0}\n${JSON.stringify(data, null, 2)}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ 订单数据获取失败\n${JSON.stringify(data, null, 2)}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ 订单数据获取异常\n${error.message}</div>`;
+            }
+        }
+
+        // 测试Token获取
+        async function testToken() {
+            const resultDiv = document.getElementById('token-test-result');
+            resultDiv.innerHTML = '<div class="info">🔄 正在测试Token获取...</div>';
+            
+            try {
+                const response = await fetch('/api/get-access-token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        appid: 'test',
+                        secret: 'test'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<div class="success">✅ Token获取测试完成\n${JSON.stringify(data, null, 2)}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Token获取测试失败\n${JSON.stringify(data, null, 2)}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Token获取测试异常\n${error.message}</div>`;
+            }
+        }
+
+        // 清除结果
+        function clearResults() {
+            document.getElementById('api-test-result').innerHTML = '';
+            document.getElementById('data-test-result').innerHTML = '';
+            document.getElementById('token-test-result').innerHTML = '';
+        }
+    </script>
+</body>
+</html> 
