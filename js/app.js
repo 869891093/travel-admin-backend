@@ -216,6 +216,7 @@ class AdminApp {
         }
     }
 
+    // 加载仪表盘数据
     async loadDashboard() {
         try {
             const stats = await api.getStats();
@@ -224,54 +225,59 @@ class AdminApp {
             document.getElementById('product-count').textContent = stats.productCount;
             document.getElementById('region-count').textContent = stats.regionCount;
             document.getElementById('order-count').textContent = stats.orderCount;
-            document.getElementById('user-count').textContent = stats.userCount;
-
+            
             // 创建图表
             this.createOrderChart();
             this.createProductChart();
+            
+            showMessage('仪表盘数据加载成功', 'success');
         } catch (error) {
-            console.error('加载仪表盘失败:', error);
-            showMessage('加载仪表盘失败', 'error');
+            console.error('加载仪表盘数据失败:', error);
+            showMessage(`加载仪表盘数据失败: ${error.message}`, 'error');
         }
     }
 
+    // 加载产品数据
     async loadProducts() {
         try {
             const products = await api.getProducts();
             this.renderProductsTable(products);
         } catch (error) {
-            console.error('加载产品失败:', error);
-            showMessage('加载产品失败', 'error');
+            console.error('加载产品数据失败:', error);
+            showMessage(`加载产品数据失败: ${error.message}`, 'error');
         }
     }
 
+    // 加载区域数据
     async loadRegions() {
         try {
             const regions = await api.getRegions();
             this.renderRegionsTable(regions);
         } catch (error) {
-            console.error('加载区域失败:', error);
-            showMessage('加载区域失败', 'error');
+            console.error('加载区域数据失败:', error);
+            showMessage(`加载区域数据失败: ${error.message}`, 'error');
         }
     }
 
+    // 加载轮播图数据
     async loadBanners() {
         try {
             const banners = await api.getBanners();
             this.renderBannersGrid(banners);
         } catch (error) {
-            console.error('加载轮播图失败:', error);
-            showMessage('加载轮播图失败', 'error');
+            console.error('加载轮播图数据失败:', error);
+            showMessage(`加载轮播图数据失败: ${error.message}`, 'error');
         }
     }
 
+    // 加载订单数据
     async loadOrders() {
         try {
             const orders = await api.getOrders();
             this.renderOrdersTable(orders);
         } catch (error) {
-            console.error('加载订单失败:', error);
-            showMessage('加载订单失败', 'error');
+            console.error('加载订单数据失败:', error);
+            showMessage(`加载订单数据失败: ${error.message}`, 'error');
         }
     }
 

@@ -104,12 +104,12 @@ class RealAPI {
         }
     }
 
-    // 获取产品数据 - 确保返回3个产品
+    // 获取产品数据
     async getProducts(query = {}) {
         try {
             console.log('获取产品数据...');
             
-            // 尝试从云开发获取数据
+            // 尝试从真实API获取数据
             const response = await fetch(`${this.baseUrl}/api/direct-cloud`, {
                 method: 'POST',
                 headers: {
@@ -123,22 +123,18 @@ class RealAPI {
                 })
             });
             
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.data) {
+                    console.log('获取产品数据成功:', result.data);
+                    return result.data;
+                }
             }
             
-            const result = await response.json();
-            
-            if (result.success && result.data) {
-                console.log(`成功获取产品数据，数量: ${result.data.length}`);
-                return result.data;
-            } else {
-                console.warn('云开发获取失败，使用模拟数据');
-                return this.getMockProducts();
-            }
+            throw new Error('无法从API获取产品数据');
         } catch (error) {
             console.error('获取产品数据失败:', error);
-            return this.getMockProducts();
+            throw error;
         }
     }
 
@@ -160,22 +156,18 @@ class RealAPI {
                 })
             });
             
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.data) {
+                    console.log('获取区域数据成功:', result.data);
+                    return result.data;
+                }
             }
             
-            const result = await response.json();
-            
-            if (result.success && result.data) {
-                console.log(`成功获取区域数据，数量: ${result.data.length}`);
-                return result.data;
-            } else {
-                console.warn('云开发获取失败，使用模拟数据');
-                return this.getMockRegions();
-            }
+            throw new Error('无法从API获取区域数据');
         } catch (error) {
             console.error('获取区域数据失败:', error);
-            return this.getMockRegions();
+            throw error;
         }
     }
 
@@ -197,22 +189,18 @@ class RealAPI {
                 })
             });
             
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.data) {
+                    console.log('获取轮播图数据成功:', result.data);
+                    return result.data;
+                }
             }
             
-            const result = await response.json();
-            
-            if (result.success && result.data) {
-                console.log(`成功获取轮播图数据，数量: ${result.data.length}`);
-                return result.data;
-            } else {
-                console.warn('云开发获取失败，使用模拟数据');
-                return this.getMockBanners();
-            }
+            throw new Error('无法从API获取轮播图数据');
         } catch (error) {
             console.error('获取轮播图数据失败:', error);
-            return this.getMockBanners();
+            throw error;
         }
     }
 
@@ -234,124 +222,19 @@ class RealAPI {
                 })
             });
             
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.data) {
+                    console.log('获取订单数据成功:', result.data);
+                    return result.data;
+                }
             }
             
-            const result = await response.json();
-            
-            if (result.success && result.data) {
-                console.log(`成功获取订单数据，数量: ${result.data.length}`);
-                return result.data;
-            } else {
-                console.warn('云开发获取失败，使用模拟数据');
-                return this.getMockOrders();
-            }
+            throw new Error('无法从API获取订单数据');
         } catch (error) {
             console.error('获取订单数据失败:', error);
-            return this.getMockOrders();
+            throw error;
         }
-    }
-
-    // 模拟产品数据 - 确保返回3个产品
-    getMockProducts() {
-        console.log('使用模拟产品数据，返回3个产品');
-        return [
-            {
-                _id: '1',
-                name: '新疆北疆8日游',
-                region: '北疆',
-                adultPrice: 3999,
-                childPrice: 2999,
-                status: 'active',
-                image: 'images/products/north-xinjiang.jpg',
-                description: '探索新疆北疆的壮美风光',
-                createTime: '2025-08-07 10:00:00'
-            },
-            {
-                _id: '2',
-                name: '新疆南疆7日游',
-                region: '南疆',
-                adultPrice: 3599,
-                childPrice: 2699,
-                status: 'active',
-                image: 'images/products/south-xinjiang.jpg',
-                description: '体验新疆南疆的独特风情',
-                createTime: '2025-08-07 10:30:00'
-            },
-            {
-                _id: '3',
-                name: '徒步旅行5日游',
-                region: '徒步',
-                adultPrice: 2599,
-                childPrice: 1999,
-                status: 'active',
-                image: 'images/products/hiking.jpg',
-                description: '享受徒步旅行的乐趣',
-                createTime: '2025-08-07 11:00:00'
-            }
-        ];
-    }
-
-    // 模拟区域数据
-    getMockRegions() {
-        return [
-            {
-                _id: '1',
-                name: '北疆',
-                productCount: 1,
-                isHot: true,
-                sort: 1,
-                status: 'active',
-                image: 'images/regions/north-xinjiang.jpg'
-            },
-            {
-                _id: '2',
-                name: '南疆',
-                productCount: 1,
-                isHot: true,
-                sort: 2,
-                status: 'active',
-                image: 'images/regions/south-xinjiang.jpg'
-            }
-        ];
-    }
-
-    // 模拟轮播图数据
-    getMockBanners() {
-        return [
-            {
-                _id: '1',
-                title: '新疆北疆风光',
-                image: 'images/banners/banner1.jpg',
-                link: '/product/1',
-                sort: 1,
-                status: 'active'
-            },
-            {
-                _id: '2',
-                title: '新疆南疆风情',
-                image: 'images/banners/banner2.jpg',
-                link: '/product/2',
-                sort: 2,
-                status: 'active'
-            }
-        ];
-    }
-
-    // 模拟订单数据
-    getMockOrders() {
-        return [
-            {
-                _id: '1',
-                productName: '新疆北疆8日游',
-                userName: '张三',
-                travelDate: '2025-09-01',
-                totalPrice: 7998,
-                status: 'confirmed',
-                createTime: '2025-08-07 10:30:00'
-            }
-        ];
     }
 
     // 获取统计数据
@@ -370,12 +253,7 @@ class RealAPI {
             };
         } catch (error) {
             console.error('获取统计数据失败:', error);
-            return {
-                productCount: 3,
-                regionCount: 2,
-                bannerCount: 2,
-                orderCount: 1
-            };
+            throw error;
         }
     }
 }

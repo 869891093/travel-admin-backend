@@ -260,25 +260,25 @@
                         <h2>Token配置</h2>
                     </div>
                     <div class="token-config-content">
-                        <div class="config-section">
+                        <div class="config-section" style="background: white; margin: 20px 0; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                             <h3>📋 微信小程序配置</h3>
                             <div class="form-group">
                                 <label>AppID:</label>
-                                <input type="text" id="appId" placeholder="请输入您的微信小程序AppID">
+                                <input type="text" id="appId" placeholder="请输入您的微信小程序AppID" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                             </div>
                             <div class="form-group">
                                 <label>AppSecret:</label>
-                                <input type="password" id="appSecret" placeholder="请输入您的微信小程序AppSecret">
+                                <input type="password" id="appSecret" placeholder="请输入您的微信小程序AppSecret" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                             </div>
                             <button class="btn btn-success" onclick="saveTokenConfig()">保存配置</button>
                             <button class="btn" onclick="testToken()">测试Token获取</button>
                             <button class="btn" onclick="clearToken()">清除Token</button>
-                            <div id="config-result" class="result"></div>
+                            <div id="config-result" class="result" style="margin-top: 10px; padding: 10px; border-radius: 4px; white-space: pre-wrap; font-family: monospace; font-size: 12px;"></div>
                         </div>
 
-                        <div class="config-section">
+                        <div class="config-section" style="background: white; margin: 20px 0; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                             <h3>🔍 Token 状态</h3>
-                            <div class="token-info">
+                            <div class="token-info" style="background: #e9ecef; padding: 15px; border-radius: 4px; margin: 10px 0;">
                                 <div><strong>当前Token:</strong> <span id="currentToken">未设置</span></div>
                                 <div><strong>完整Token:</strong> <span id="fullToken" style="word-break: break-all; font-family: monospace; font-size: 12px;">未设置</span></div>
                                 <div><strong>过期时间:</strong> <span id="expireTime">未设置</span></div>
@@ -287,7 +287,7 @@
                             <button class="btn" onclick="refreshTokenStatus()">刷新状态</button>
                             <button class="btn btn-success" onclick="startAutoRefresh()">开始自动更新</button>
                             <button class="btn" onclick="stopAutoRefresh()">停止自动更新</button>
-                            <div id="status-result" class="result"></div>
+                            <div id="status-result" class="result" style="margin-top: 10px; padding: 10px; border-radius: 4px; white-space: pre-wrap; font-family: monospace; font-size: 12px;"></div>
                         </div>
                     </div>
                 </div>
