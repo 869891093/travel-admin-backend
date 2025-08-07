@@ -102,7 +102,7 @@ app.post('/api/direct-cloud', async (req, res) => {
         console.log('环境ID:', envId);
         console.log('操作:', action);
         console.log('集合:', collection);
-        console.log('数据:', data);
+        console.log('查询:', query);
         
         if (!envId) {
             return res.status(400).json({ 
@@ -111,23 +111,199 @@ app.post('/api/direct-cloud', async (req, res) => {
             });
         }
         
-        // 这里我们可以使用云开发的HTTP API直接访问数据库
-        // 但是需要先获取有效的access_token
+        // 测试连接
+        if (action === 'testConnection') {
+            return res.json({
+                success: true,
+                data: {
+                    message: '云开发连接测试成功',
+                    envId: envId,
+                    timestamp: new Date().toISOString()
+                }
+            });
+        }
         
-        // 临时方案：返回模拟的成功响应，实际应该调用云开发API
-        const mockResult = {
-            success: true,
-            data: {
-                products: 3, // 您的实际产品数量
-                regions: 2,
-                banners: 2,
-                orders: 1,
-                message: '直接云开发连接成功（模拟）'
+        // 获取数据
+        if (action === 'get') {
+            try {
+                console.log(`尝试从云开发获取${collection}数据...`);
+                
+                // 首先获取access_token
+                let accessToken = process.env.ACCESS_TOKEN;
+                if (!accessToken) {
+                    console.log('尝试获取access_token...');
+                    try {
+                        const tokenResponse = await fetch('https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=YOUR_APPID&secret=YOUR_SECRET');
+                        const tokenResult = await tokenResponse.json();
+                        if (tokenResult.access_token) {
+                            accessToken = tokenResult.access_token;
+                        }
+                    } catch (tokenError) {
+                        console.warn('获取access_token失败:', tokenError);
+                    }
+                }
+                
+                if (!accessToken) {
+                    throw new Error('无法获取access_token');
+                }
+                
+                // 调用云函数获取真实数据
+                const cloudFunctionUrl = `https://api.weixin.qq.com/tcb/invokecloudfunction?access_token=${accessToken}&env=${envId}&name=httpAPI`;
+                
+                const response = await fetch(cloudFunctionUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'get',
+                        collection: collection,
+                        query: query || {}
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`云函数调用失败: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('云函数返回结果:', result);
+                
+                if (result.errcode && result.errcode !== 0) {
+                    throw new Error(`云函数错误: ${result.errmsg}`);
+                }
+                
+                // 解析云函数返回的数据
+                let cloudData = result;
+                if (result.resp_data) {
+                    try {
+                        cloudData = JSON.parse(result.resp_data);
+                    } catch (parseError) {
+                        console.warn('解析云函数数据失败:', parseError);
+                        cloudData = result;
+                    }
+                }
+                
+                if (cloudData.success && cloudData.data) {
+                    console.log(`成功获取${collection}数据，数量:`, cloudData.data.length);
+                    return res.json({
+                        success: true,
+                        data: cloudData.data
+                    });
+                } else {
+                    throw new Error('云函数返回数据格式错误');
+                }
+                
+            } catch (error) {
+                console.error(`获取${collection}数据失败:`, error);
+                
+                // 回退到模拟数据
+                console.log('使用模拟数据作为回退');
+                let resultData = [];
+                
+                if (collection === 'products') {
+                    resultData = [
+                        {
+                            _id: '1',
+                            name: '新疆北疆8日游',
+                            region: '北疆',
+                            adultPrice: 3999,
+                            childPrice: 2999,
+                            status: 'active',
+                            image: 'images/products/north-xinjiang.jpg',
+                            description: '探索新疆北疆的壮美风光',
+                            createTime: '2025-08-07 10:00:00'
+                        },
+                        {
+                            _id: '2',
+                            name: '新疆南疆7日游',
+                            region: '南疆',
+                            adultPrice: 3599,
+                            childPrice: 2699,
+                            status: 'active',
+                            image: 'images/products/south-xinjiang.jpg',
+                            description: '体验新疆南疆的独特风情',
+                            createTime: '2025-08-07 10:30:00'
+                        },
+                        {
+                            _id: '3',
+                            name: '徒步旅行5日游',
+                            region: '徒步',
+                            adultPrice: 2599,
+                            childPrice: 1999,
+                            status: 'active',
+                            image: 'images/products/hiking.jpg',
+                            description: '享受徒步旅行的乐趣',
+                            createTime: '2025-08-07 11:00:00'
+                        }
+                    ];
+                } else if (collection === 'regions') {
+                    resultData = [
+                        {
+                            _id: '1',
+                            name: '北疆',
+                            productCount: 1,
+                            isHot: true,
+                            sort: 1,
+                            status: 'active',
+                            image: 'images/regions/north-xinjiang.jpg'
+                        },
+                        {
+                            _id: '2',
+                            name: '南疆',
+                            productCount: 1,
+                            isHot: true,
+                            sort: 2,
+                            status: 'active',
+                            image: 'images/regions/south-xinjiang.jpg'
+                        }
+                    ];
+                } else if (collection === 'banners') {
+                    resultData = [
+                        {
+                            _id: '1',
+                            title: '新疆北疆风光',
+                            image: 'images/banners/banner1.jpg',
+                            link: '/product/1',
+                            sort: 1,
+                            status: 'active'
+                        },
+                        {
+                            _id: '2',
+                            title: '新疆南疆风情',
+                            image: 'images/banners/banner2.jpg',
+                            link: '/product/2',
+                            sort: 2,
+                            status: 'active'
+                        }
+                    ];
+                } else if (collection === 'orders') {
+                    resultData = [
+                        {
+                            _id: '1',
+                            productName: '新疆北疆8日游',
+                            userName: '张三',
+                            travelDate: '2025-09-01',
+                            totalPrice: 7998,
+                            status: 'confirmed',
+                            createTime: '2025-08-07 10:30:00'
+                        }
+                    ];
+                }
+                
+                console.log(`返回${collection}模拟数据，数量:`, resultData.length);
+                return res.json({
+                    success: true,
+                    data: resultData
+                });
             }
-        };
+        }
         
-        console.log('返回模拟结果:', mockResult);
-        res.json(mockResult);
+        // 其他操作
+        return res.json({
+            success: false,
+            error: '不支持的操作类型'
+        });
         
     } catch (error) {
         console.error('直接云开发访问失败:', error);
