@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据库连接测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .config-section {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .config-item {
+            margin: 5px 0;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 数据库连接测试</h1>
+    
+    <div class="config-section">
+        <h3>📋 当前配置</h3>
+        <div class="config-item">
+            <strong>环境ID:</strong> <span id="envId">new-travel-2gy6d6oy7ee5fb0e</span>
+        </div>
+        <div class="config-item">
+            <strong>服务地址:</strong> <span id="serviceUrl">https://travel-admin-backend-v2.weixin.qq.com</span>
+        </div>
+        <div class="config-item">
+            <strong>API密钥:</strong> <input type="text" id="apiKey" placeholder="请输入API密钥（可选）">
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>🌐 连接测试</h3>
+        <button class="test-button" onclick="testServiceHealth()">测试服务健康状态</button>
+        <button class="test-button" onclick="testDirectCloud()">测试直接云开发连接</button>
+        <button class="test-button" onclick="testCloudFunction()">测试云函数调用</button>
+        <div id="connection-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📊 数据同步测试</h3>
+        <button class="test-button" onclick="testGetProducts()">测试获取产品数据</button>
+        <button class="test-button" onclick="testGetRegions()">测试获取区域数据</button>
+        <button class="test-button" onclick="testGetBanners()">测试获取轮播图数据</button>
+        <button class="test-button" onclick="testGetOrders()">测试获取订单数据</button>
+        <div id="data-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔧 故障排除</h3>
+        <button class="test-button" onclick="checkConfig()">检查配置</button>
+        <button class="test-button" onclick="clearCache()">清除缓存</button>
+        <button class="test-button" onclick="showDebugInfo()">显示调试信息</button>
+        <div id="debug-result" class="result"></div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        const api = new API();
+        
+        // 测试服务健康状态
+        async function testServiceHealth() {
+            const resultDiv = document.getElementById('connection-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在测试服务健康状态...';
+            
+            try {
+                const response = await fetch('https://travel-admin-backend-v2.weixin.qq.com/api/health');
+                const data = await response.json();
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ 服务健康状态测试成功:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ 服务健康状态测试失败:\n${error.message}`;
+            }
+        }
+        
+        // 测试直接云开发连接
+        async function testDirectCloud() {
+            const resultDiv = document.getElementById('connection-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在测试直接云开发连接...';
+            
+            try {
+                const response = await fetch('https://travel-admin-backend-v2.weixin.qq.com/api/direct-cloud', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        envId: 'new-travel-2gy6d6oy7ee5fb0e',
+                        action: 'testConnection'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ 直接云开发连接成功:\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ 直接云开发连接失败:\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ 直接云开发连接异常:\n${error.message}`;
+            }
+        }
+        
+        // 测试云函数调用
+        async function testCloudFunction() {
+            const resultDiv = document.getElementById('connection-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在测试云函数调用...';
+            
+            try {
+                const response = await fetch('https://travel-admin-backend-v2.weixin.qq.com/api/cloud-function', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        envId: 'new-travel-2gy6d6oy7ee5fb0e',
+                        functionName: 'httpAPI',
+                        data: {
+                            action: 'testConnection'
+                        }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ 云函数调用成功:\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ 云函数调用失败:\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ 云函数调用异常:\n${error.message}`;
+            }
+        }
+        
+        // 测试获取产品数据
+        async function testGetProducts() {
+            const resultDiv = document.getElementById('data-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在获取产品数据...';
+            
+            try {
+                const products = await api.getProducts();
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ 产品数据获取成功:\n数量: ${products.length}\n数据: ${JSON.stringify(products.slice(0, 3), null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ 产品数据获取失败:\n${error.message}`;
+            }
+        }
+        
+        // 测试获取区域数据
+        async function testGetRegions() {
+            const resultDiv = document.getElementById('data-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在获取区域数据...';
+            
+            try {
+                const regions = await api.getRegions();
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ 区域数据获取成功:\n数量: ${regions.length}\n数据: ${JSON.stringify(regions.slice(0, 3), null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ 区域数据获取失败:\n${error.message}`;
+            }
+        }
+        
+        // 测试获取轮播图数据
+        async function testGetBanners() {
+            const resultDiv = document.getElementById('data-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在获取轮播图数据...';
+            
+            try {
+                const banners = await api.getBanners();
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ 轮播图数据获取成功:\n数量: ${banners.length}\n数据: ${JSON.stringify(banners.slice(0, 3), null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ 轮播图数据获取失败:\n${error.message}`;
+            }
+        }
+        
+        // 测试获取订单数据
+        async function testGetOrders() {
+            const resultDiv = document.getElementById('data-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在获取订单数据...';
+            
+            try {
+                const orders = await api.getOrders();
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ 订单数据获取成功:\n数量: ${orders.length}\n数据: ${JSON.stringify(orders.slice(0, 3), null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ 订单数据获取失败:\n${error.message}`;
+            }
+        }
+        
+        // 检查配置
+        function checkConfig() {
+            const resultDiv = document.getElementById('debug-result');
+            const config = {
+                envId: CONFIG.envId,
+                baseUrl: api.baseUrl,
+                useProxy: api.useProxy,
+                isConnected: api.isConnected
+            };
+            
+            resultDiv.className = 'result info';
+            resultDiv.textContent = `📋 当前配置:\n${JSON.stringify(config, null, 2)}`;
+        }
+        
+        // 清除缓存
+        function clearCache() {
+            localStorage.clear();
+            const resultDiv = document.getElementById('debug-result');
+            resultDiv.className = 'result success';
+            resultDiv.textContent = '✅ 缓存已清除，请刷新页面重新加载配置';
+        }
+        
+        // 显示调试信息
+        function showDebugInfo() {
+            const resultDiv = document.getElementById('debug-result');
+            const debugInfo = {
+                userAgent: navigator.userAgent,
+                localStorage: Object.keys(localStorage),
+                apiConfig: {
+                    envId: api.envId,
+                    baseUrl: api.baseUrl,
+                    useProxy: api.useProxy
+                }
+            };
+            
+            resultDiv.className = 'result info';
+            resultDiv.textContent = `🔍 调试信息:\n${JSON.stringify(debugInfo, null, 2)}`;
+        }
+        
+        // 页面加载时显示配置
+        window.onload = function() {
+            document.getElementById('envId').textContent = CONFIG.envId;
+            document.getElementById('serviceUrl').textContent = api.baseUrl;
+        };
+    </script>
+</body>
+</html> 
