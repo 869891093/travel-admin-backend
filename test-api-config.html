@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API配置测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 API配置测试</h1>
+    
+    <div class="test-section">
+        <h3>📋 环境信息</h3>
+        <div id="env-info"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔍 API实例检查</h3>
+        <div id="api-check"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🌐 网络测试</h3>
+        <button onclick="testNetwork()">测试网络连接</button>
+        <div id="network-test" class="result"></div>
+    </div>
+
+    <!-- 引入必要的脚本 -->
+    <script src="js/config.js"></script>
+    <script src="js/api-real.js"></script>
+
+    <script>
+        // 页面加载时检查配置
+        window.onload = function() {
+            checkEnvironment();
+            checkAPI();
+        };
+
+        function checkEnvironment() {
+            const envInfo = document.getElementById('env-info');
+            envInfo.innerHTML = `
+                <p><strong>当前域名:</strong> ${window.location.origin}</p>
+                <p><strong>当前URL:</strong> ${window.location.href}</p>
+                <p><strong>CONFIG.envId:</strong> ${CONFIG.envId}</p>
+                <p><strong>CONFIG.baseUrl:</strong> ${CONFIG.baseUrl}</p>
+            `;
+        }
+
+        function checkAPI() {
+            const apiCheck = document.getElementById('api-check');
+            
+            if (typeof api !== 'undefined') {
+                apiCheck.innerHTML = `
+                    <div class="success">
+                        ✅ API实例存在
+                        <br>类型: ${api.constructor.name}
+                        <br>baseUrl: ${api.baseUrl}
+                        <br>envId: ${api.envId}
+                        <br>isConnected: ${api.isConnected}
+                    </div>
+                `;
+            } else {
+                apiCheck.innerHTML = `
+                    <div class="error">
+                        ❌ API实例未定义
+                    </div>
+                `;
+            }
+        }
+
+        async function testNetwork() {
+            const testDiv = document.getElementById('network-test');
+            testDiv.innerHTML = '🔄 正在测试网络连接...';
+            
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    testDiv.innerHTML = `
+                        <div class="success">
+                            ✅ 网络连接成功
+                            <br>状态: ${response.status}
+                            <br>数据: ${JSON.stringify(data, null, 2)}
+                        </div>
+                    `;
+                } else {
+                    testDiv.innerHTML = `
+                        <div class="error">
+                            ❌ 网络连接失败
+                            <br>状态: ${response.status}
+                            <br>数据: ${JSON.stringify(data, null, 2)}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                testDiv.innerHTML = `
+                    <div class="error">
+                        ❌ 网络连接异常
+                        <br>错误: ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html> 
