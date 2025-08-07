@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "build": "echo 'Static site - no build step required'",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "test": "node simple-test.js"
   },
   "dependencies": {
     "express": "^4.17.1",

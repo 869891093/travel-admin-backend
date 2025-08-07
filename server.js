@@ -196,7 +196,9 @@ app.get('*', (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`代理服务器运行在 http://localhost:${port}`);
-    console.log('健康检查: http://localhost:3000/api/health');
-    console.log('测试接口: http://localhost:3000/api/test');
+    console.log(`代理服务器运行在端口 ${port}`);
+    console.log(`健康检查: http://localhost:${port}/api/health`);
+    console.log(`测试接口: http://localhost:${port}/api/test`);
+    console.log('环境变量 PORT:', process.env.PORT);
+    console.log('环境变量 NODE_ENV:', process.env.NODE_ENV);
 }); 
