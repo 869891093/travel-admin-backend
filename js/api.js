@@ -4,7 +4,7 @@ class API {
         this.envId = CONFIG.envId || 'new-travel-2gy6d6oy7ee5fb0e';
         this.accessToken = CONFIG.apiKey || '';
         this.useProxy = true; // 使用代理服务器
-        this.baseUrl = 'https://travel-admin-backend-v2.weixin.qq.com'; // 微信云开发服务地址
+        this.baseUrl = 'https://travel-admin-backend-v2-178239-9-1372522107.sh.run.tcloudbase.com'; // 微信云开发服务地址
         this.isConnected = false; // 连接状态
     }
 

@@ -81,7 +81,7 @@
             <strong>环境ID:</strong> <span id="envId">new-travel-2gy6d6oy7ee5fb0e</span>
         </div>
         <div class="config-item">
-            <strong>服务地址:</strong> <span id="serviceUrl">https://travel-admin-backend-v2.weixin.qq.com</span>
+            <strong>服务地址:</strong> <span id="serviceUrl">https://travel-admin-backend-v2-178239-9-1372522107.sh.run.tcloudbase.com</span>
         </div>
         <div class="config-item">
             <strong>API密钥:</strong> <input type="text" id="apiKey" placeholder="请输入API密钥（可选）">
@@ -125,7 +125,7 @@
             resultDiv.textContent = '正在测试服务健康状态...';
             
             try {
-                const response = await fetch('https://travel-admin-backend-v2.weixin.qq.com/api/health');
+                const response = await fetch('https://travel-admin-backend-v2-178239-9-1372522107.sh.run.tcloudbase.com/api/health');
                 const data = await response.json();
                 
                 resultDiv.className = 'result success';
@@ -143,7 +143,7 @@
             resultDiv.textContent = '正在测试直接云开发连接...';
             
             try {
-                const response = await fetch('https://travel-admin-backend-v2.weixin.qq.com/api/direct-cloud', {
+                const response = await fetch('https://travel-admin-backend-v2-178239-9-1372522107.sh.run.tcloudbase.com/api/direct-cloud', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -176,7 +176,7 @@
             resultDiv.textContent = '正在测试云函数调用...';
             
             try {
-                const response = await fetch('https://travel-admin-backend-v2.weixin.qq.com/api/cloud-function', {
+                const response = await fetch('https://travel-admin-backend-v2-178239-9-1372522107.sh.run.tcloudbase.com/api/cloud-function', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
