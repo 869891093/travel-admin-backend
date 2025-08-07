@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产品编辑功能测试</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-container">
+        <main class="main-content" style="margin-left: 0;">
+            <div class="content-wrapper">
+                <h1>产品编辑功能测试</h1>
+                <p>这个页面用于测试产品编辑功能是否正常工作。</p>
+                
+                <button class="btn btn-primary" onclick="testProductEdit()">测试产品编辑</button>
+                
+                <div id="test-result" style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px; display: none;">
+                    <h3>测试结果</h3>
+                    <pre id="result-content"></pre>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 模态框 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">测试产品编辑</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- 模态框内容将根据操作类型动态加载 -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/app.js"></script>
+    
+    <script>
+        // 测试产品编辑功能
+        function testProductEdit() {
+            console.log('开始测试产品编辑功能...');
+            
+            // 模拟一个产品数据
+            const testProduct = {
+                _id: 'test_product_001',
+                title: '测试产品',
+                description: '这是一个测试产品',
+                adultPrice: 1000,
+                childPrice: 500,
+                region: '北疆',
+                coverImage: 'https://example.com/image1.jpg',
+                images: ['https://example.com/image1.jpg', 'https://example.com/image2.jpg'],
+                detailImages: ['https://example.com/detail1.jpg', 'https://example.com/detail2.jpg'],
+                tags: ['热门', '推荐', '特价'],
+                itinerary: [
+                    '第1天：抵达目的地，入住酒店',
+                    '第2天：游览景点A',
+                    '第3天：游览景点B'
+                ],
+                fees: [
+                    { type: '包含', description: '住宿费用' },
+                    { type: '包含', description: '餐饮费用' },
+                    { type: '不包含', description: '个人消费' }
+                ],
+                notices: [
+                    '请提前预订',
+                    '需要携带有效证件',
+                    '注意天气变化'
+                ],
+                priceCalendar: {
+                    '2024-01-01': { adultPrice: 1000, childPrice: 500, available: true },
+                    '2024-01-02': { adultPrice: 1200, childPrice: 600, available: true }
+                },
+                status: 'active'
+            };
+            
+            // 打开产品编辑模态框
+            app.openProductModal(testProduct);
+            
+            // 显示测试结果
+            document.getElementById('test-result').style.display = 'block';
+            document.getElementById('result-content').textContent = JSON.stringify(testProduct, null, 2);
+        }
+        
+        // 绑定模态框关闭事件
+        document.querySelector('.close').addEventListener('click', () => {
+            document.getElementById('modal').style.display = 'none';
+        });
+        
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                document.getElementById('modal').style.display = 'none';
+            }
+        });
+        
+        console.log('测试页面加载完成');
+    </script>
+</body>
+</html> 

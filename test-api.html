@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API测试页面</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .result { background: #f5f5f5; padding: 10px; margin: 10px 0; }
+        .error { color: red; }
+        .success { color: green; }
+        input, button { margin: 5px; padding: 5px; }
+    </style>
+</head>
+<body>
+    <h1>API测试页面</h1>
+    
+    <div class="test-section">
+        <h3>1. 测试Access Token</h3>
+        <input type="text" id="access-token" placeholder="请输入access_token" style="width: 400px;">
+        <button onclick="testAccessToken()">测试Access Token</button>
+        <div id="token-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. 测试云函数调用</h3>
+        <input type="text" id="env-id" placeholder="环境ID" value="new-travel-2gy6d6oy7ee5fb0e">
+        <button onclick="testCloudFunction()">测试云函数</button>
+        <div id="cloud-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. 测试数据库操作</h3>
+        <button onclick="testAddProduct()">添加测试产品</button>
+        <button onclick="testGetProducts()">获取产品列表</button>
+        <div id="db-result" class="result"></div>
+    </div>
+
+    <script>
+        // 测试Access Token
+        async function testAccessToken() {
+            const token = document.getElementById('access-token').value;
+            const resultDiv = document.getElementById('token-result');
+            
+            if (!token) {
+                resultDiv.innerHTML = '<span class="error">请输入access_token</span>';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`https://api.weixin.qq.com/cgi-bin/getcallbackip?access_token=${token}`);
+                const result = await response.json();
+                
+                if (result.errcode) {
+                    resultDiv.innerHTML = `<span class="error">Token无效: ${result.errmsg}</span>`;
+                } else {
+                    resultDiv.innerHTML = `<span class="success">Token有效！IP列表: ${JSON.stringify(result.ip_list)}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">测试失败: ${error.message}</span>`;
+            }
+        }
+        
+        // 测试云函数调用
+        async function testCloudFunction() {
+            const token = document.getElementById('access-token').value;
+            const envId = document.getElementById('env-id').value;
+            const resultDiv = document.getElementById('cloud-result');
+            
+            if (!token) {
+                resultDiv.innerHTML = '<span class="error">请先输入access_token</span>';
+                return;
+            }
+            
+            try {
+                const url = `https://api.weixin.qq.com/tcb/invokecloudfunction?access_token=${token}&env=${envId}&name=httpAPI`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'getStats'
+                    })
+                });
+                
+                const result = await response.json();
+                console.log('云函数调用结果:', result);
+                
+                if (result.errcode) {
+                    resultDiv.innerHTML = `<span class="error">云函数调用失败: ${result.errmsg}</span>`;
+                } else {
+                    const data = result.resp_data ? JSON.parse(result.resp_data) : result;
+                    resultDiv.innerHTML = `<span class="success">云函数调用成功！结果: ${JSON.stringify(data)}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">云函数调用失败: ${error.message}</span>`;
+            }
+        }
+        
+        // 测试添加产品
+        async function testAddProduct() {
+            const token = document.getElementById('access-token').value;
+            const envId = document.getElementById('env-id').value;
+            const resultDiv = document.getElementById('db-result');
+            
+            if (!token) {
+                resultDiv.innerHTML = '<span class="error">请先输入access_token</span>';
+                return;
+            }
+            
+            try {
+                const url = `https://api.weixin.qq.com/tcb/invokecloudfunction?access_token=${token}&env=${envId}&name=httpAPI`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'add',
+                        collection: 'products',
+                        data: {
+                            title: '测试产品',
+                            description: '这是一个测试产品',
+                            adultPrice: 1000,
+                            childPrice: 500,
+                            region: '测试区域',
+                            status: 'active'
+                        }
+                    })
+                });
+                
+                const result = await response.json();
+                console.log('添加产品结果:', result);
+                
+                if (result.errcode) {
+                    resultDiv.innerHTML = `<span class="error">添加产品失败: ${result.errmsg}</span>`;
+                } else {
+                    const data = result.resp_data ? JSON.parse(result.resp_data) : result;
+                    resultDiv.innerHTML = `<span class="success">添加产品成功！结果: ${JSON.stringify(data)}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">添加产品失败: ${error.message}</span>`;
+            }
+        }
+        
+        // 测试获取产品
+        async function testGetProducts() {
+            const token = document.getElementById('access-token').value;
+            const envId = document.getElementById('env-id').value;
+            const resultDiv = document.getElementById('db-result');
+            
+            if (!token) {
+                resultDiv.innerHTML = '<span class="error">请先输入access_token</span>';
+                return;
+            }
+            
+            try {
+                const url = `https://api.weixin.qq.com/tcb/invokecloudfunction?access_token=${token}&env=${envId}&name=httpAPI`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'get',
+                        collection: 'products'
+                    })
+                });
+                
+                const result = await response.json();
+                console.log('获取产品结果:', result);
+                
+                if (result.errcode) {
+                    resultDiv.innerHTML = `<span class="error">获取产品失败: ${result.errmsg}</span>`;
+                } else {
+                    const data = result.resp_data ? JSON.parse(result.resp_data) : result;
+                    resultDiv.innerHTML = `<span class="success">获取产品成功！产品数量: ${data.data ? data.data.length : 0}</span><br>数据: ${JSON.stringify(data)}`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">获取产品失败: ${error.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html> 

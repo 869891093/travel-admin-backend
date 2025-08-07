@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试页面</title>
+</head>
+<body>
+    <h1>管理系统测试</h1>
+    <button onclick="testClick()">测试点击</button>
+    <div id="result"></div>
+
+    <script>
+        function testClick() {
+            document.getElementById('result').innerHTML = '点击成功！时间：' + new Date().toLocaleString();
+            console.log('测试点击成功');
+        }
+        
+        console.log('测试页面加载完成');
+    </script>
+</body>
+</html> 

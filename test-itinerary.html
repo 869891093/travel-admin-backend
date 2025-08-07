@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行程安排测试</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-container">
+        <main class="main-content" style="margin-left: 0;">
+            <div class="content-wrapper">
+                <h1>行程安排数据测试</h1>
+                <p>这个页面用于测试行程安排的数据处理。</p>
+                
+                <button class="btn btn-primary" onclick="testItineraryData()">测试行程安排数据</button>
+                
+                <div id="test-result" style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                    <h3>测试结果</h3>
+                    <div id="result-content"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 模态框 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">行程安排测试</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- 模态框内容将根据操作类型动态加载 -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/app.js"></script>
+    
+    <script>
+        // 测试行程安排数据
+        function testItineraryData() {
+            console.log('开始测试行程安排数据...');
+            
+            // 测试不同的数据结构
+            const testCases = [
+                {
+                    name: '字符串数组',
+                    data: [
+                        '第1天：抵达目的地，入住酒店',
+                        '第2天：游览景点A',
+                        '第3天：游览景点B'
+                    ]
+                },
+                {
+                    name: '对象数组',
+                    data: [
+                        { day: 1, content: '抵达目的地，入住酒店' },
+                        { day: 2, content: '游览景点A' },
+                        { day: 3, content: '游览景点B' }
+                    ]
+                },
+                {
+                    name: '混合数据',
+                    data: [
+                        '第1天：抵达目的地',
+                        { day: 2, content: '游览景点A' },
+                        '第3天：游览景点B'
+                    ]
+                },
+                {
+                    name: '空数据',
+                    data: []
+                },
+                {
+                    name: 'null数据',
+                    data: null
+                }
+            ];
+            
+            let resultHtml = '<h4>测试结果：</h4>';
+            
+            testCases.forEach((testCase, index) => {
+                const testProduct = {
+                    _id: `test_${index}`,
+                    title: `测试产品 ${index + 1}`,
+                    description: '测试产品描述',
+                    adultPrice: 1000,
+                    childPrice: 500,
+                    region: '北疆',
+                    itinerary: testCase.data,
+                    status: 'active'
+                };
+                
+                resultHtml += `
+                    <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
+                        <h5>${testCase.name}</h5>
+                        <p><strong>原始数据:</strong></p>
+                        <pre style="background: #f5f5f5; padding: 10px; border-radius: 4px;">${JSON.stringify(testCase.data, null, 2)}</pre>
+                        <button class="btn btn-secondary" onclick="testProductEdit(${index})">测试编辑</button>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('result-content').innerHTML = resultHtml;
+        }
+        
+        // 测试产品编辑
+        function testProductEdit(index) {
+            const testCases = [
+                {
+                    name: '字符串数组',
+                    data: [
+                        '第1天：抵达目的地，入住酒店',
+                        '第2天：游览景点A',
+                        '第3天：游览景点B'
+                    ]
+                },
+                {
+                    name: '对象数组',
+                    data: [
+                        { day: 1, content: '抵达目的地，入住酒店' },
+                        { day: 2, content: '游览景点A' },
+                        { day: 3, content: '游览景点B' }
+                    ]
+                },
+                {
+                    name: '混合数据',
+                    data: [
+                        '第1天：抵达目的地',
+                        { day: 2, content: '游览景点A' },
+                        '第3天：游览景点B'
+                    ]
+                },
+                {
+                    name: '空数据',
+                    data: []
+                },
+                {
+                    name: 'null数据',
+                    data: null
+                }
+            ];
+            
+            const testCase = testCases[index];
+            const testProduct = {
+                _id: `test_${index}`,
+                title: `测试产品 ${index + 1}`,
+                description: '测试产品描述',
+                adultPrice: 1000,
+                childPrice: 500,
+                region: '北疆',
+                itinerary: testCase.data,
+                status: 'active'
+            };
+            
+            console.log('测试产品数据:', testProduct);
+            console.log('行程安排数据:', testProduct.itinerary);
+            
+            app.openProductModal(testProduct);
+        }
+        
+        // 绑定模态框关闭事件
+        document.querySelector('.close').addEventListener('click', () => {
+            document.getElementById('modal').style.display = 'none';
+        });
+        
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                document.getElementById('modal').style.display = 'none';
+            }
+        });
+        
+        console.log('行程安排测试页面加载完成');
+    </script>
+</body>
+</html> 

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据连接调试工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .debug-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .debug-section h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #4b6e58;
+            padding-bottom: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background: #4b6e58;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .data-table th,
+        .data-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        .data-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-online {
+            background: #28a745;
+        }
+        .status-offline {
+            background: #dc3545;
+        }
+        .status-warning {
+            background: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 数据连接调试工具</h1>
+        <p>这个工具可以帮助您诊断和解决数据连接问题。</p>
+
+        <!-- 系统状态 -->
+        <div class="debug-section">
+            <h3>📊 系统状态</h3>
+            <div id="systemStatus">
+                <p><span class="status-indicator status-warning"></span>正在检查系统状态...</p>
+            </div>
+            <button class="btn btn-primary" onclick="checkSystemStatus()">检查系统状态</button>
+        </div>
+
+        <!-- 云端连接测试 -->
+        <div class="debug-section">
+            <h3>☁️ 云端连接测试</h3>
+            <button class="btn btn-primary" onclick="testCloudConnection()">测试云端连接</button>
+            <button class="btn btn-secondary" onclick="testCloudData()">测试云端数据</button>
+            <button class="btn btn-danger" onclick="clearLocalData()">清空本地数据</button>
+            <div id="cloudResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 数据对比 -->
+        <div class="debug-section">
+            <h3>📊 数据对比分析</h3>
+            <button class="btn btn-primary" onclick="compareData()">对比云端和本地数据</button>
+            <div id="compareResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 产品数据详情 -->
+        <div class="debug-section">
+            <h3>📦 产品数据详情</h3>
+            <button class="btn btn-primary" onclick="showProductDetails()">显示产品详情</button>
+            <button class="btn btn-secondary" onclick="showLocalProducts()">显示本地产品</button>
+            <div id="productDetails" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 环境配置 -->
+        <div class="debug-section">
+            <h3>⚙️ 环境配置</h3>
+            <div>
+                <label>云开发环境ID:</label>
+                <input type="text" id="envId" value="new-travel-2gy6d6oy7ee5fb0e" style="width: 300px; padding: 5px; margin: 5px;">
+            </div>
+            <div>
+                <label>API密钥:</label>
+                <input type="password" id="apiKey" placeholder="可选" style="width: 300px; padding: 5px; margin: 5px;">
+            </div>
+            <button class="btn btn-primary" onclick="updateConfig()">更新配置</button>
+            <button class="btn btn-secondary" onclick="loadConfig()">加载配置</button>
+            <div id="configResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 操作日志 -->
+        <div class="debug-section">
+            <h3>📝 操作日志</h3>
+            <button class="btn btn-primary" onclick="showLogs()">显示日志</button>
+            <button class="btn btn-secondary" onclick="clearLogs()">清空日志</button>
+            <div id="logsResult" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        let logs = [];
+
+        // 添加日志
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleString();
+            logs.push({ timestamp, message, type });
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        // 检查系统状态
+        async function checkSystemStatus() {
+            addLog('开始检查系统状态...');
+            
+            const statusDiv = document.getElementById('systemStatus');
+            let statusHtml = '<h4>系统状态检查结果:</h4>';
+            
+            try {
+                // 检查配置
+                statusHtml += `<p>✅ 环境ID: ${CONFIG.envId}</p>`;
+                statusHtml += `<p>${CONFIG.apiKey ? '✅' : '⚠️'} API密钥: ${CONFIG.apiKey ? '已配置' : '未配置'}</p>`;
+                
+                // 检查本地存储
+                const localProducts = JSON.parse(localStorage.getItem('admin_products') || '[]');
+                const localRegions = JSON.parse(localStorage.getItem('admin_regions') || '[]');
+                statusHtml += `<p>📦 本地产品数据: ${localProducts.length} 条</p>`;
+                statusHtml += `<p>🌍 本地区域数据: ${localRegions.length} 条</p>`;
+                
+                // 测试云端连接
+                addLog('测试云端连接...');
+                const cloudResult = await api.testConnection();
+                if (cloudResult.success) {
+                    statusHtml += `<p>☁️ 云端连接: 正常</p>`;
+                    statusHtml += `<p>📊 云端数据统计: ${JSON.stringify(cloudResult.data)}</p>`;
+                } else {
+                    statusHtml += `<p>❌ 云端连接: 失败 (${cloudResult.message})</p>`;
+                }
+                
+                addLog('系统状态检查完成');
+            } catch (error) {
+                statusHtml += `<p>❌ 检查失败: ${error.message}</p>`;
+                addLog('系统状态检查失败: ' + error.message, 'error');
+            }
+            
+            statusDiv.innerHTML = statusHtml;
+        }
+
+        // 测试云端连接
+        async function testCloudConnection() {
+            try {
+                addLog('开始测试云端连接...');
+                showResult('正在测试云端连接...', 'info', 'cloudResult');
+                
+                const result = await api.testConnection();
+                
+                if (result.success) {
+                    showResult('云端连接成功!\n\n详细信息:\n' + JSON.stringify(result.data, null, 2), 'success', 'cloudResult');
+                    addLog('云端连接测试成功');
+                } else {
+                    showResult('云端连接失败!\n\n错误信息:\n' + result.message, 'error', 'cloudResult');
+                    addLog('云端连接测试失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showResult('云端连接测试异常:\n' + error.message, 'error', 'cloudResult');
+                addLog('云端连接测试异常: ' + error.message, 'error');
+            }
+        }
+
+        // 测试云端数据
+        async function testCloudData() {
+            try {
+                addLog('开始测试云端数据...');
+                showResult('正在获取云端数据...', 'info', 'cloudResult');
+                
+                const products = await api.getProducts();
+                const regions = await api.getRegions();
+                const banners = await api.getBanners();
+                const orders = await api.getOrders();
+                
+                const dataSummary = {
+                    products: products.length,
+                    regions: regions.length,
+                    banners: banners.length,
+                    orders: orders.length,
+                    productDetails: products.map(p => ({ id: p._id, title: p.title, region: p.region }))
+                };
+                
+                showResult('云端数据获取成功!\n\n数据摘要:\n' + JSON.stringify(dataSummary, null, 2), 'success', 'cloudResult');
+                addLog('云端数据测试成功');
+            } catch (error) {
+                showResult('云端数据测试失败:\n' + error.message, 'error', 'cloudResult');
+                addLog('云端数据测试失败: ' + error.message, 'error');
+            }
+        }
+
+        // 清空本地数据
+        function clearLocalData() {
+            try {
+                addLog('清空本地数据...');
+                api.clearLocalStorage();
+                showResult('本地数据已清空，系统将重新从云端加载数据', 'success', 'cloudResult');
+                addLog('本地数据清空完成');
+            } catch (error) {
+                showResult('清空本地数据失败:\n' + error.message, 'error', 'cloudResult');
+                addLog('清空本地数据失败: ' + error.message, 'error');
+            }
+        }
+
+        // 对比数据
+        async function compareData() {
+            try {
+                addLog('开始对比云端和本地数据...');
+                showResult('正在对比数据...', 'info', 'compareResult');
+                
+                // 获取本地数据
+                const localProducts = JSON.parse(localStorage.getItem('admin_products') || '[]');
+                const localRegions = JSON.parse(localStorage.getItem('admin_regions') || '[]');
+                
+                // 获取云端数据
+                const cloudProducts = await api.getProducts();
+                const cloudRegions = await api.getRegions();
+                
+                const comparison = {
+                    products: {
+                        local: localProducts.length,
+                        cloud: cloudProducts.length,
+                        difference: cloudProducts.length - localProducts.length
+                    },
+                    regions: {
+                        local: localRegions.length,
+                        cloud: cloudRegions.length,
+                        difference: cloudRegions.length - localRegions.length
+                    },
+                    details: {
+                        localProducts: localProducts.map(p => ({ id: p._id, title: p.title })),
+                        cloudProducts: cloudProducts.map(p => ({ id: p._id, title: p.title }))
+                    }
+                };
+                
+                showResult('数据对比完成!\n\n对比结果:\n' + JSON.stringify(comparison, null, 2), 'success', 'compareResult');
+                addLog('数据对比完成');
+            } catch (error) {
+                showResult('数据对比失败:\n' + error.message, 'error', 'compareResult');
+                addLog('数据对比失败: ' + error.message, 'error');
+            }
+        }
+
+        // 显示产品详情
+        async function showProductDetails() {
+            try {
+                addLog('获取产品详情...');
+                showResult('正在获取产品详情...', 'info', 'productDetails');
+                
+                const products = await api.getProducts();
+                
+                if (products.length === 0) {
+                    showResult('没有找到产品数据', 'warning', 'productDetails');
+                } else {
+                    const details = products.map(p => ({
+                        id: p._id,
+                        title: p.title,
+                        region: p.region,
+                        adultPrice: p.adultPrice,
+                        childPrice: p.childPrice,
+                        status: p.status,
+                        createTime: p.createTime
+                    }));
+                    
+                    showResult('产品详情:\n' + JSON.stringify(details, null, 2), 'success', 'productDetails');
+                }
+                
+                addLog('产品详情获取完成');
+            } catch (error) {
+                showResult('获取产品详情失败:\n' + error.message, 'error', 'productDetails');
+                addLog('获取产品详情失败: ' + error.message, 'error');
+            }
+        }
+
+        // 显示本地产品
+        function showLocalProducts() {
+            try {
+                addLog('获取本地产品数据...');
+                const localProducts = JSON.parse(localStorage.getItem('admin_products') || '[]');
+                
+                if (localProducts.length === 0) {
+                    showResult('本地没有产品数据', 'warning', 'productDetails');
+                } else {
+                    const details = localProducts.map(p => ({
+                        id: p._id,
+                        title: p.title,
+                        region: p.region,
+                        adultPrice: p.adultPrice,
+                        childPrice: p.childPrice,
+                        status: p.status,
+                        createTime: p.createTime
+                    }));
+                    
+                    showResult('本地产品详情:\n' + JSON.stringify(details, null, 2), 'success', 'productDetails');
+                }
+                
+                addLog('本地产品数据获取完成');
+            } catch (error) {
+                showResult('获取本地产品数据失败:\n' + error.message, 'error', 'productDetails');
+                addLog('获取本地产品数据失败: ' + error.message, 'error');
+            }
+        }
+
+        // 更新配置
+        function updateConfig() {
+            try {
+                const envId = document.getElementById('envId').value;
+                const apiKey = document.getElementById('apiKey').value;
+                
+                CONFIG.envId = envId;
+                CONFIG.apiKey = apiKey;
+                
+                saveConfig();
+                showResult('配置已更新', 'success', 'configResult');
+                addLog('配置已更新');
+            } catch (error) {
+                showResult('更新配置失败:\n' + error.message, 'error', 'configResult');
+                addLog('更新配置失败: ' + error.message, 'error');
+            }
+        }
+
+        // 加载配置
+        function loadConfig() {
+            try {
+                loadConfig();
+                document.getElementById('envId').value = CONFIG.envId || '';
+                document.getElementById('apiKey').value = CONFIG.apiKey || '';
+                showResult('配置已加载', 'success', 'configResult');
+                addLog('配置已加载');
+            } catch (error) {
+                showResult('加载配置失败:\n' + error.message, 'error', 'configResult');
+                addLog('加载配置失败: ' + error.message, 'error');
+            }
+        }
+
+        // 显示日志
+        function showLogs() {
+            const logsText = logs.map(log => `[${log.timestamp}] ${log.message}`).join('\n');
+            showResult('操作日志:\n' + logsText, 'info', 'logsResult');
+        }
+
+        // 清空日志
+        function clearLogs() {
+            logs = [];
+            showResult('日志已清空', 'success', 'logsResult');
+        }
+
+        // 显示结果
+        function showResult(message, type, elementId) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `result ${type}`;
+            element.textContent = message;
+        }
+
+        // 页面加载时初始化
+        window.addEventListener('load', function() {
+            addLog('调试工具已启动');
+            loadConfig();
+            checkSystemStatus();
+        });
+    </script>
+</body>
+</html> 

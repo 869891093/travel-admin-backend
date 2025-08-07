@@ -1,0 +1,31 @@
+{
+  "version": "2.0",
+  "envId": "new-travel-2gy6d6oy7ee5fb0e",
+  "framework": {
+    "name": "express",
+    "plugins": {
+      "client": {
+        "use": "@cloudbase/framework-plugin-node",
+        "inputs": {
+          "entry": "server.js",
+          "path": "/",
+          "name": "admin-server",
+          "installCommands": "npm install",
+          "buildCommands": "npm run build",
+          "startCommands": "npm start",
+          "region": "ap-shanghai",
+          "platform": "nodejs12.16",
+          "containerPort": 3000,
+          "minNum": 0,
+          "maxNum": 10,
+          "cpu": 0.25,
+          "mem": 0.5,
+          "timeoutSeconds": 3,
+          "envVariables": {
+            "NODE_ENV": "production"
+          }
+        }
+      }
+    }
+  }
+} 

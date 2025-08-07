@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>获取Access Token</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: #4b6e58;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .instructions {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+        .instructions ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔑 获取Access Token</h1>
+        
+        <div class="instructions">
+            <h3>📋 使用说明</h3>
+            <ol>
+                <li>登录微信公众平台：<a href="https://mp.weixin.qq.com" target="_blank">https://mp.weixin.qq.com</a></li>
+                <li>进入"开发" → "基本配置"</li>
+                <li>复制您的AppID和AppSecret</li>
+                <li>填写到下面的表单中</li>
+                <li>点击"获取Access Token"按钮</li>
+                <li>复制获取到的access_token到系统设置中</li>
+            </ol>
+        </div>
+
+        <form id="tokenForm">
+            <div class="form-group">
+                <label>AppID *</label>
+                <input type="text" id="appid" placeholder="请输入您的AppID" required>
+            </div>
+            
+            <div class="form-group">
+                <label>AppSecret *</label>
+                <input type="password" id="secret" placeholder="请输入您的AppSecret" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">获取Access Token</button>
+            <button type="button" class="btn btn-secondary" onclick="testConnection()">测试连接</button>
+        </form>
+
+        <div id="result" class="result" style="display: none;"></div>
+        
+        <div style="margin-top: 30px;">
+            <h3>💡 提示</h3>
+            <ul>
+                <li>AppID和AppSecret是敏感信息，请妥善保管</li>
+                <li>access_token有效期为2小时，过期需要重新获取</li>
+                <li>获取到access_token后，请在系统设置中配置</li>
+                <li>如果遇到问题，请检查AppID和AppSecret是否正确</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('tokenForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const appid = document.getElementById('appid').value;
+            const secret = document.getElementById('secret').value;
+            
+            if (!appid || !secret) {
+                showResult('请填写AppID和AppSecret', 'error');
+                return;
+            }
+            
+            try {
+                showResult('正在获取access_token...', 'info');
+                
+                const response = await fetch('http://localhost:3000/api/get-access-token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ appid, secret })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const tokenInfo = {
+                        access_token: result.access_token,
+                        expires_in: result.expires_in,
+                        expires_at: new Date(Date.now() + result.expires_in * 1000).toLocaleString(),
+                        message: '获取成功！请在系统设置中配置此access_token'
+                    };
+                    
+                    showResult('Access Token获取成功！\n\n' + JSON.stringify(tokenInfo, null, 2), 'success');
+                    
+                    // 自动保存到localStorage
+                    localStorage.setItem('apiKey', result.access_token);
+                    console.log('Access token已保存到localStorage');
+                    
+                } else {
+                    showResult('获取失败: ' + result.error, 'error');
+                }
+                
+            } catch (error) {
+                showResult('请求失败: ' + error.message, 'error');
+            }
+        });
+
+        async function testConnection() {
+            try {
+                showResult('正在测试连接...', 'info');
+                
+                const response = await fetch('http://localhost:3000/api/health');
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult('连接测试成功！\n\n' + JSON.stringify(result, null, 2), 'success');
+                } else {
+                    showResult('连接测试失败: ' + JSON.stringify(result, null, 2), 'error');
+                }
+                
+            } catch (error) {
+                showResult('连接测试失败: ' + error.message, 'error');
+            }
+        }
+
+        function showResult(message, type) {
+            const element = document.getElementById('result');
+            element.style.display = 'block';
+            element.className = `result ${type}`;
+            element.textContent = message;
+        }
+
+        // 页面加载时测试连接
+        window.addEventListener('load', function() {
+            testConnection();
+        });
+    </script>
+</body>
+</html> 
