@@ -4,6 +4,13 @@ class RealAPI {
         this.envId = CONFIG.envId || 'new-travel-2gy6d6oy7ee5fb0e';
         // 使用当前域名作为baseUrl，避免跨域问题
         this.baseUrl = window.location.origin;
+        
+        // 调试信息
+        console.log('=== RealAPI 初始化 ===');
+        console.log('当前域名:', window.location.origin);
+        console.log('设置的baseUrl:', this.baseUrl);
+        console.log('环境ID:', this.envId);
+        
         this.isConnected = false;
         this.accessToken = null;
         
@@ -278,4 +285,10 @@ class RealAPI {
 }
 
 // 创建全局api实例
-const api = new RealAPI(); 
+const api = new RealAPI();
+
+// 调试信息
+console.log('=== api-real.js 加载完成 ===');
+console.log('创建的api实例:', api);
+console.log('api.baseUrl:', api.baseUrl);
+console.log('api.envId:', api.envId); 

@@ -4,8 +4,14 @@ class API {
         this.envId = CONFIG.envId || 'new-travel-2gy6d6oy7ee5fb0e';
         this.accessToken = CONFIG.apiKey || '';
         this.useProxy = true; // 使用代理服务器
-        this.baseUrl = 'https://travel-admin-backend-v2-178239-9-1372522107.sh.run.tcloudbase.com'; // 微信云开发服务地址
+        this.baseUrl = window.location.origin; // 使用当前域名
         this.isConnected = false; // 连接状态
+        
+        // 调试信息
+        console.log('=== API 初始化 ===');
+        console.log('当前域名:', window.location.origin);
+        console.log('设置的baseUrl:', this.baseUrl);
+        console.log('环境ID:', this.envId);
     }
 
     // 测试连接
