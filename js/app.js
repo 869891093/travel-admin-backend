@@ -1462,3 +1462,178 @@ function refreshSyncedToken() {
         showMessage('刷新Token失败', 'error');
     }
 }
+
+// Token配置相关函数
+function saveTokenConfig() {
+    const appId = document.getElementById('appId').value.trim();
+    const appSecret = document.getElementById('appSecret').value.trim();
+    
+    if (!appId || !appSecret) {
+        showMessage('请填写完整的AppID和AppSecret', 'error');
+        return;
+    }
+    
+    localStorage.setItem('appId', appId);
+    localStorage.setItem('appSecret', appSecret);
+    
+    if (typeof tokenManager !== 'undefined') {
+        tokenManager.appId = appId;
+        tokenManager.appSecret = appSecret;
+    }
+    
+    showMessage('配置保存成功！', 'success');
+}
+
+async function testToken() {
+    try {
+        showMessage('正在测试Token获取...', 'info');
+        
+        if (typeof tokenManager !== 'undefined') {
+            const token = await tokenManager.getAccessToken();
+            
+            if (token) {
+                showMessage(`Token获取成功！\nToken: ${token.substring(0, 20)}...`, 'success');
+                refreshTokenStatus();
+                // 自动同步到系统设置
+                await syncToSettings();
+            } else {
+                showMessage('Token获取失败，请检查配置', 'error');
+            }
+        } else {
+            showMessage('Token管理器未初始化', 'error');
+        }
+    } catch (error) {
+        showMessage(`Token获取失败: ${error.message}`, 'error');
+    }
+}
+
+function clearToken() {
+    if (typeof tokenManager !== 'undefined') {
+        tokenManager.clearToken();
+    }
+    showMessage('Token已清除', 'success');
+    refreshTokenStatus();
+    updateSyncStatus('未同步', 'sync-pending');
+}
+
+function refreshTokenStatus() {
+    if (typeof tokenManager === 'undefined') {
+        return;
+    }
+    
+    const currentToken = tokenManager.accessToken;
+    const expireTime = tokenManager.tokenExpireTime;
+    
+    if (currentToken) {
+        document.getElementById('currentToken').textContent = currentToken.substring(0, 20) + '...';
+        document.getElementById('fullToken').textContent = currentToken;
+        document.getElementById('expireTime').textContent = new Date(expireTime).toLocaleString();
+        
+        if (Date.now() < expireTime) {
+            document.getElementById('tokenStatus').textContent = '有效';
+            document.getElementById('tokenStatus').style.color = '#28a745';
+        } else {
+            document.getElementById('tokenStatus').textContent = '已过期';
+            document.getElementById('tokenStatus').style.color = '#dc3545';
+        }
+    } else {
+        document.getElementById('currentToken').textContent = '未设置';
+        document.getElementById('fullToken').textContent = '未设置';
+        document.getElementById('expireTime').textContent = '未设置';
+        document.getElementById('tokenStatus').textContent = '未获取';
+        document.getElementById('tokenStatus').style.color = '#6c757d';
+    }
+}
+
+let autoRefreshInterval = null;
+
+function startAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+    }
+    
+    // 立即执行一次
+    autoRefreshToken();
+    
+    // 每5分钟自动更新一次
+    autoRefreshInterval = setInterval(autoRefreshToken, 5 * 60 * 1000);
+    
+    showMessage('自动更新已启动，每5分钟更新一次token', 'success');
+}
+
+function stopAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+        showMessage('自动更新已停止', 'info');
+    }
+}
+
+async function autoRefreshToken() {
+    try {
+        console.log('自动更新token...');
+        if (typeof tokenManager !== 'undefined') {
+            const token = await tokenManager.getAccessToken();
+            if (token) {
+                refreshTokenStatus();
+                console.log('token自动更新成功');
+                // 自动同步到系统设置
+                await syncToSettings();
+            }
+        }
+    } catch (error) {
+        console.error('自动更新token失败:', error);
+    }
+}
+
+async function syncToSettings() {
+    if (typeof tokenManager === 'undefined') {
+        return;
+    }
+    
+    const token = tokenManager.accessToken;
+    if (!token) {
+        showMessage('没有可同步的Token', 'error');
+        updateSyncStatus('同步失败', 'sync-error');
+        return;
+    }
+
+    try {
+        updateSyncStatus('同步中...', 'sync-pending');
+        
+        // 保存到localStorage，供主页面使用
+        localStorage.setItem('apiKey', token);
+        
+        // 如果主页面存在，直接更新
+        if (window.parent && window.parent !== window) {
+            try {
+                const apiKeyInput = window.parent.document.getElementById('api-key');
+                if (apiKeyInput) {
+                    apiKeyInput.value = token;
+                    showMessage('Token已同步到系统设置', 'success');
+                    updateSyncStatus('已同步', 'sync-success');
+                    return;
+                }
+            } catch (e) {
+                console.log('无法直接更新父页面，使用localStorage同步');
+            }
+        }
+
+        // 通过localStorage同步
+        localStorage.setItem('token_sync_time', Date.now().toString());
+        showMessage('Token已保存到localStorage，请在系统设置页面刷新查看', 'success');
+        updateSyncStatus('已同步', 'sync-success');
+        
+    } catch (error) {
+        showMessage(`同步失败: ${error.message}`, 'error');
+        updateSyncStatus('同步失败', 'sync-error');
+    }
+}
+
+function updateSyncStatus(text, className) {
+    const syncStatus = document.getElementById('syncStatus');
+    if (syncStatus) {
+        syncStatus.textContent = text;
+        syncStatus.className = `sync-status ${className}`;
+    }
+}

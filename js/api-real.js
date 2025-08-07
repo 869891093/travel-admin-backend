@@ -2,7 +2,7 @@
 class RealAPI {
     constructor() {
         this.envId = CONFIG.envId || 'new-travel-2gy6d6oy7ee5fb0e';
-        this.baseUrl = 'https://travel-admin-backend-v2-178239-9-1372522107.sh.run.tcloudbase.com';
+        this.baseUrl = 'https://new-travel-2gy6d6oy7ee5fb0e-1372522107.ap-shanghai.app.tcloudbase.com';
         this.isConnected = false;
         this.accessToken = null;
         
