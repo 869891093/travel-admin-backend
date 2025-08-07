@@ -124,7 +124,9 @@ class RealAPI {
     // 获取产品数据
     async getProducts(query = {}) {
         try {
-            console.log('获取产品数据...');
+            console.log('=== 获取产品数据 ===');
+            console.log('当前baseUrl:', this.baseUrl);
+            console.log('当前域名:', window.location.origin);
             console.log('请求地址:', `${this.baseUrl}/api/direct-cloud`);
             console.log('请求数据:', { envId: this.envId, action: 'get', collection: 'products', query: query });
             
