@@ -10,6 +10,14 @@ class RealAPI {
         console.log('当前域名:', window.location.origin);
         console.log('设置的baseUrl:', this.baseUrl);
         console.log('环境ID:', this.envId);
+        console.log('时间戳:', new Date().toISOString());
+        
+        // 验证baseUrl是否正确
+        if (this.baseUrl !== window.location.origin) {
+            console.error('❌ baseUrl设置错误:', this.baseUrl);
+        } else {
+            console.log('✅ baseUrl设置正确:', this.baseUrl);
+        }
         
         this.isConnected = false;
         this.accessToken = null;
@@ -25,7 +33,9 @@ class RealAPI {
         try {
             console.log('=== 测试API连接 ===');
             console.log('当前域名:', window.location.origin);
+            console.log('this.baseUrl:', this.baseUrl);
             console.log('API地址:', `${this.baseUrl}/api/health`);
+            console.log('时间戳:', new Date().toISOString());
             
             const response = await fetch(`${this.baseUrl}/api/health`, {
                 method: 'GET',
@@ -48,6 +58,8 @@ class RealAPI {
             }
         } catch (error) {
             console.error('API连接测试异常:', error);
+            console.error('错误详情:', error.message);
+            console.error('错误堆栈:', error.stack);
             this.isConnected = false;
             return { success: false, message: error.message };
         }

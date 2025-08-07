@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API调试</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f5f5f5; }
+        .debug-section { background: white; margin: 20px 0; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .result { margin-top: 10px; padding: 10px; border-radius: 4px; white-space: pre-wrap; font-family: monospace; font-size: 12px; background: #f8f9fa; border: 1px solid #dee2e6; max-height: 300px; overflow-y: auto; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .btn { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        .btn:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>🔧 API调试工具</h1>
+    
+    <div class="debug-section">
+        <h3>📋 环境信息</h3>
+        <div id="env-info"></div>
+    </div>
+
+    <div class="debug-section">
+        <h3>🔍 API实例检查</h3>
+        <div id="api-check"></div>
+    </div>
+
+    <div class="debug-section">
+        <h3>🌐 网络测试</h3>
+        <button class="btn" onclick="testHealth()">测试健康检查</button>
+        <button class="btn" onclick="testDirectCloud()">测试直接云开发</button>
+        <button class="btn" onclick="testProducts()">测试产品数据</button>
+        <div id="network-test" class="result"></div>
+    </div>
+
+    <script src="js/config.js?v=20250108"></script>
+    <script src="js/api-real.js?v=20250108"></script>
+
+    <script>
+        window.onload = function() {
+            checkEnvironment();
+            checkAPI();
+        };
+
+        function checkEnvironment() {
+            const envInfo = document.getElementById('env-info');
+            envInfo.innerHTML = `
+                <p><strong>当前域名:</strong> ${window.location.origin}</p>
+                <p><strong>当前URL:</strong> ${window.location.href}</p>
+                <p><strong>CONFIG.envId:</strong> ${CONFIG.envId}</p>
+            `;
+        }
+
+        function checkAPI() {
+            const apiCheck = document.getElementById('api-check');
+            
+            if (typeof api !== 'undefined') {
+                apiCheck.innerHTML = `
+                    <div class="success">
+                        ✅ API实例存在
+                        <br>类型: ${api.constructor.name}
+                        <br>baseUrl: ${api.baseUrl}
+                        <br>envId: ${api.envId}
+                    </div>
+                `;
+            } else {
+                apiCheck.innerHTML = `<div class="error">❌ API实例未定义</div>`;
+            }
+        }
+
+        async function testHealth() {
+            const testDiv = document.getElementById('network-test');
+            testDiv.innerHTML = '🔄 正在测试健康检查...';
+            
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    testDiv.innerHTML = `<div class="success">✅ 健康检查成功<br>状态: ${response.status}<br>数据: ${JSON.stringify(data, null, 2)}</div>`;
+                } else {
+                    testDiv.innerHTML = `<div class="error">❌ 健康检查失败<br>状态: ${response.status}<br>数据: ${JSON.stringify(data, null, 2)}</div>`;
+                }
+            } catch (error) {
+                testDiv.innerHTML = `<div class="error">❌ 健康检查异常<br>错误: ${error.message}</div>`;
+            }
+        }
+
+        async function testDirectCloud() {
+            const testDiv = document.getElementById('network-test');
+            testDiv.innerHTML = '🔄 正在测试直接云开发...';
+            
+            try {
+                const response = await fetch('/api/direct-cloud', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        envId: api.envId,
+                        action: 'testConnection'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    testDiv.innerHTML = `<div class="success">✅ 直接云开发连接成功<br>状态: ${response.status}<br>数据: ${JSON.stringify(data, null, 2)}</div>`;
+                } else {
+                    testDiv.innerHTML = `<div class="error">❌ 直接云开发连接失败<br>状态: ${response.status}<br>数据: ${JSON.stringify(data, null, 2)}</div>`;
+                }
+            } catch (error) {
+                testDiv.innerHTML = `<div class="error">❌ 直接云开发连接异常<br>错误: ${error.message}</div>`;
+            }
+        }
+
+        async function testProducts() {
+            const testDiv = document.getElementById('network-test');
+            testDiv.innerHTML = '🔄 正在测试产品数据获取...';
+            
+            try {
+                const products = await api.getProducts();
+                testDiv.innerHTML = `<div class="success">✅ 产品数据获取成功<br>产品数量: ${products.length}<br>数据: ${JSON.stringify(products, null, 2)}</div>`;
+            } catch (error) {
+                testDiv.innerHTML = `<div class="error">❌ 产品数据获取失败<br>错误: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html> 

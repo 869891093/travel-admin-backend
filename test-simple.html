@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单API测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 4px; font-family: monospace; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>🔧 简单API测试</h1>
+    
+    <div id="env-info"></div>
+    <div id="api-info"></div>
+    <div id="test-result"></div>
+    
+    <button onclick="testAPI()">测试API</button>
+    
+    <script src="js/config.js?v=20250108"></script>
+    <script src="js/api-real.js?v=20250108"></script>
+    
+    <script>
+        window.onload = function() {
+            document.getElementById('env-info').innerHTML = `
+                <h3>环境信息</h3>
+                <p>当前域名: ${window.location.origin}</p>
+                <p>当前URL: ${window.location.href}</p>
+            `;
+            
+            if (typeof api !== 'undefined') {
+                document.getElementById('api-info').innerHTML = `
+                    <h3>API信息</h3>
+                    <p>类型: ${api.constructor.name}</p>
+                    <p>baseUrl: ${api.baseUrl}</p>
+                    <p>envId: ${api.envId}</p>
+                `;
+            } else {
+                document.getElementById('api-info').innerHTML = `
+                    <h3>API信息</h3>
+                    <p class="error">❌ API实例未定义</p>
+                `;
+            }
+        };
+        
+        async function testAPI() {
+            const resultDiv = document.getElementById('test-result');
+            resultDiv.innerHTML = '<p>🔄 正在测试...</p>';
+            
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<div class="success">✅ 测试成功<br>状态: ${response.status}<br>数据: ${JSON.stringify(data)}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ 测试失败<br>状态: ${response.status}<br>数据: ${JSON.stringify(data)}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ 测试异常<br>错误: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html> 
