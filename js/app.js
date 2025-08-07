@@ -12,9 +12,6 @@ class AdminApp {
         console.log('AdminApp 初始化中...');
         this.bindEvents();
         
-        // 初始化API
-        api.initLocalStorage();
-        
         // 测试连接
         this.testConnection();
         
@@ -32,13 +29,13 @@ class AdminApp {
                 showMessage('API连接成功！', 'success');
                 return true;
             } else {
-                console.warn('API连接失败，使用本地存储模式:', result.message);
-                showMessage('API连接失败，使用本地存储模式', 'warning');
+                console.warn('API连接失败:', result.message);
+                showMessage('API连接失败，将使用模拟数据', 'warning');
                 return false;
             }
         } catch (error) {
             console.error('连接测试异常:', error);
-            showMessage('连接测试异常，使用本地存储模式', 'warning');
+            showMessage('连接测试异常，将使用模拟数据', 'warning');
             return false;
         }
     }
@@ -46,18 +43,13 @@ class AdminApp {
     // 强制重新加载数据
     async forceReloadData() {
         try {
-            showMessage('正在从云端重新加载数据...', 'info');
-            const success = await api.forceReloadFromCloud();
+            showMessage('正在重新加载数据...', 'info');
             
-            if (success) {
-                showMessage('数据已从云端重新加载！', 'success');
-                // 重新加载当前页面数据
-                this.loadPageData(this.currentPage);
-            } else {
-                showMessage('云端连接失败，使用本地数据', 'warning');
-            }
+            // 重新加载当前页面数据
+            this.loadPageData(this.currentPage);
+            showMessage('数据已重新加载！', 'success');
         } catch (error) {
-            console.error('强制重新加载失败:', error);
+            console.error('重新加载失败:', error);
             showMessage('重新加载失败', 'error');
         }
     }

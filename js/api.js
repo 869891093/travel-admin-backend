@@ -81,19 +81,14 @@ class API {
             return this.accessToken.trim();
         }
         
-        console.warn('未配置access_token，尝试从云函数获取');
-        try {
-            const result = await this.callCloudFunction('getAccessToken', {});
-            if (result.success && result.access_token) {
-                this.accessToken = result.access_token;
-                return this.accessToken;
-            }
-        } catch (error) {
-            console.error('获取access_token失败:', error);
+        // 检查本地存储中是否有API密钥
+        const savedApiKey = localStorage.getItem('apiKey');
+        if (savedApiKey) {
+            this.accessToken = savedApiKey;
+            return this.accessToken;
         }
         
-        // 如果没有access_token，返回null，系统将使用本地存储
-        console.warn('无法获取access_token，将使用本地存储模式');
+        console.warn('未配置access_token，将使用本地存储模式');
         return null;
     }
 
@@ -129,7 +124,7 @@ class API {
             const url = `${this.baseUrl}/api/cloud-function`;
             
             console.log('直接调用云函数:', url);
-            console.log('请求数据:', { accessToken, envId: this.envId, functionName, data });
+            console.log('请求数据:', { envId: this.envId, functionName, data });
 
             const response = await fetch(url, {
                 method: 'POST',
