@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token同步测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .token-display {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            word-break: break-all;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Token同步功能测试</h1>
+    
+    <div class="test-section">
+        <h3>📋 测试步骤</h3>
+        <ol>
+            <li>打开 <a href="token-config.html" target="_blank">Token配置页面</a></li>
+            <li>配置AppID和AppSecret</li>
+            <li>点击"测试Token获取"</li>
+            <li>观察Token是否自动同步到系统设置</li>
+            <li>打开 <a href="index.html" target="_blank">主管理页面</a></li>
+            <li>进入"系统设置"页面查看API密钥是否已自动填充</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>🔍 当前状态</h3>
+        <div id="current-status">
+            <p><strong>localStorage中的Token:</strong> <span id="localStorage-token">检查中...</span></p>
+            <p><strong>同步时间:</strong> <span id="sync-time">检查中...</span></p>
+            <p><strong>Token状态:</strong> <span id="token-status">检查中...</span></p>
+        </div>
+        <button class="btn" onclick="checkStatus()">刷新状态</button>
+        <button class="btn btn-success" onclick="clearTestData()">清除测试数据</button>
+        <div id="status-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📊 测试数据</h3>
+        <div class="token-display" id="test-token-display">
+            <strong>测试Token:</strong>
+            <div id="test-token">未设置</div>
+        </div>
+        <button class="btn" onclick="setTestToken()">设置测试Token</button>
+        <button class="btn" onclick="simulateSync()">模拟同步</button>
+        <div id="test-result" class="result"></div>
+    </div>
+
+    <script>
+        // 页面加载时检查状态
+        window.onload = function() {
+            checkStatus();
+        };
+
+        // 检查当前状态
+        function checkStatus() {
+            const token = localStorage.getItem('apiKey');
+            const syncTime = localStorage.getItem('token_sync_time');
+            
+            document.getElementById('localStorage-token').textContent = token ? token.substring(0, 20) + '...' : '未设置';
+            document.getElementById('sync-time').textContent = syncTime ? new Date(parseInt(syncTime)).toLocaleString() : '未设置';
+            
+            if (token && syncTime) {
+                const timeDiff = Math.floor((Date.now() - parseInt(syncTime)) / 1000 / 60);
+                if (timeDiff < 120) {
+                    document.getElementById('token-status').textContent = `有效 (${timeDiff}分钟前同步)`;
+                    document.getElementById('token-status').style.color = '#28a745';
+                } else {
+                    document.getElementById('token-status').textContent = `已过期 (${timeDiff}分钟前同步)`;
+                    document.getElementById('token-status').style.color = '#dc3545';
+                }
+            } else {
+                document.getElementById('token-status').textContent = '未同步';
+                document.getElementById('token-status').style.color = '#6c757d';
+            }
+            
+            showResult('status-result', '状态检查完成', 'success');
+        }
+
+        // 设置测试Token
+        function setTestToken() {
+            const testToken = 'test_token_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            document.getElementById('test-token').textContent = testToken;
+            showResult('test-result', '测试Token已设置', 'success');
+        }
+
+        // 模拟同步
+        function simulateSync() {
+            const testToken = document.getElementById('test-token').textContent;
+            if (testToken === '未设置') {
+                showResult('test-result', '请先设置测试Token', 'error');
+                return;
+            }
+            
+            localStorage.setItem('apiKey', testToken);
+            localStorage.setItem('token_sync_time', Date.now().toString());
+            
+            showResult('test-result', '测试Token已同步到localStorage', 'success');
+            checkStatus();
+        }
+
+        // 清除测试数据
+        function clearTestData() {
+            localStorage.removeItem('apiKey');
+            localStorage.removeItem('token_sync_time');
+            document.getElementById('test-token').textContent = '未设置';
+            showResult('status-result', '测试数据已清除', 'success');
+            checkStatus();
+        }
+
+        // 显示结果
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.textContent = message;
+        }
+    </script>
+</body>
+</html> 

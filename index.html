@@ -40,6 +40,10 @@
                         <i class="fas fa-cog"></i>
                         <span>系统设置</span>
                     </li>
+                    <li class="nav-item" data-page="token-config">
+                        <i class="fas fa-key"></i>
+                        <span>Token配置</span>
+                    </li>
                 </ul>
             </nav>
         </aside>
@@ -236,9 +240,55 @@
                         </div>
                         <div class="form-group">
                             <label>API密钥</label>
-                            <input type="password" id="api-key" placeholder="请输入API密钥">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="password" id="api-key" placeholder="请输入API密钥" style="flex: 1;">
+                                <button class="btn btn-secondary" onclick="refreshSyncedToken()" style="white-space: nowrap;">
+                                    <i class="fas fa-sync-alt"></i> 刷新Token
+                                </button>
+                            </div>
+                            <div id="token-sync-status" style="margin-top: 5px; font-size: 12px; color: #666;">
+                                <!-- Token同步状态将在这里显示 -->
+                            </div>
                         </div>
                         <button class="btn btn-primary" onclick="saveSettings()">保存设置</button>
+                    </div>
+                </div>
+
+                <!-- Token配置页面 -->
+                <div id="token-config" class="page">
+                    <div class="page-header">
+                        <h2>Token配置</h2>
+                    </div>
+                    <div class="token-config-content">
+                        <div class="config-section">
+                            <h3>📋 微信小程序配置</h3>
+                            <div class="form-group">
+                                <label>AppID:</label>
+                                <input type="text" id="appId" placeholder="请输入您的微信小程序AppID">
+                            </div>
+                            <div class="form-group">
+                                <label>AppSecret:</label>
+                                <input type="password" id="appSecret" placeholder="请输入您的微信小程序AppSecret">
+                            </div>
+                            <button class="btn btn-success" onclick="saveTokenConfig()">保存配置</button>
+                            <button class="btn" onclick="testToken()">测试Token获取</button>
+                            <button class="btn" onclick="clearToken()">清除Token</button>
+                            <div id="config-result" class="result"></div>
+                        </div>
+
+                        <div class="config-section">
+                            <h3>🔍 Token 状态</h3>
+                            <div class="token-info">
+                                <div><strong>当前Token:</strong> <span id="currentToken">未设置</span></div>
+                                <div><strong>完整Token:</strong> <span id="fullToken" style="word-break: break-all; font-family: monospace; font-size: 12px;">未设置</span></div>
+                                <div><strong>过期时间:</strong> <span id="expireTime">未设置</span></div>
+                                <div><strong>状态:</strong> <span id="tokenStatus">未获取</span></div>
+                            </div>
+                            <button class="btn" onclick="refreshTokenStatus()">刷新状态</button>
+                            <button class="btn btn-success" onclick="startAutoRefresh()">开始自动更新</button>
+                            <button class="btn" onclick="stopAutoRefresh()">停止自动更新</button>
+                            <div id="status-result" class="result"></div>
+                        </div>
                     </div>
                 </div>
             </div>

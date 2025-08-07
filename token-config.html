@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
             background-color: #f5f5f5;
@@ -52,6 +52,13 @@
         .btn-success:hover {
             background: #218838;
         }
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        .btn-warning:hover {
+            background: #e0a800;
+        }
         .result {
             margin-top: 10px;
             padding: 10px;
@@ -81,6 +88,51 @@
             border-radius: 4px;
             margin: 10px 0;
         }
+        .token-display {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            word-break: break-all;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .copy-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .copy-btn:hover {
+            background: #5a6268;
+        }
+        .sync-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .sync-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .sync-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .sync-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
     </style>
 </head>
 <body>
@@ -108,8 +160,17 @@
             <div><strong>当前Token:</strong> <span id="currentToken">未设置</span></div>
             <div><strong>过期时间:</strong> <span id="expireTime">未设置</span></div>
             <div><strong>状态:</strong> <span id="tokenStatus">未获取</span></div>
+            <div><strong>自动同步:</strong> <span id="syncStatus" class="sync-status sync-pending">未同步</span></div>
+        </div>
+        <div class="token-display" id="fullTokenDisplay">
+            <strong>完整Token:</strong>
+            <div id="fullToken" style="margin-top: 5px;">未设置</div>
+            <button class="copy-btn" onclick="copyToken()">复制Token</button>
         </div>
         <button class="btn" onclick="refreshTokenStatus()">刷新状态</button>
+        <button class="btn btn-success" onclick="startAutoRefresh()">开始自动更新</button>
+        <button class="btn" onclick="stopAutoRefresh()">停止自动更新</button>
+        <button class="btn btn-warning" onclick="syncToSettings()">手动同步到系统设置</button>
         <div id="status-result" class="result"></div>
     </div>
 
@@ -120,16 +181,28 @@
             <li>填写配置信息并保存</li>
             <li>点击"测试Token获取"验证配置</li>
             <li>配置成功后，系统会自动管理access_token</li>
+            <li>Token会自动同步到系统设置的API密钥中</li>
         </ol>
         <p><strong>注意:</strong> AppSecret是敏感信息，请妥善保管，不要泄露给他人。</p>
+        <p><strong>自动同步:</strong> 获取到Token后会自动同步到后台管理系统的系统设置中，无需手动复制。</p>
     </div>
 
     <script src="js/token-manager.js"></script>
     <script>
+        let autoRefreshInterval = null;
+        
         // 页面加载时加载配置
         window.onload = function() {
             loadConfig();
             refreshTokenStatus();
+            
+            // 检查是否有保存的AppID和AppSecret，如果有则自动开始更新
+            const savedAppId = localStorage.getItem('appId');
+            const savedAppSecret = localStorage.getItem('appSecret');
+            if (savedAppId && savedAppSecret) {
+                console.log('检测到保存的配置，自动开始token更新');
+                startAutoRefresh();
+            }
         };
 
         // 加载配置
@@ -175,6 +248,8 @@
                 if (token) {
                     showResult('config-result', `Token获取成功！\nToken: ${token.substring(0, 20)}...`, 'success');
                     refreshTokenStatus();
+                    // 自动同步到系统设置
+                    await syncToSettings();
                 } else {
                     showResult('config-result', 'Token获取失败，请检查配置', 'error');
                 }
@@ -188,6 +263,7 @@
             tokenManager.clearToken();
             showResult('config-result', 'Token已清除', 'success');
             refreshTokenStatus();
+            updateSyncStatus('未同步', 'sync-pending');
         }
 
         // 刷新Token状态
@@ -197,6 +273,7 @@
             
             if (currentToken) {
                 document.getElementById('currentToken').textContent = currentToken.substring(0, 20) + '...';
+                document.getElementById('fullToken').textContent = currentToken;
                 document.getElementById('expireTime').textContent = new Date(expireTime).toLocaleString();
                 
                 if (Date.now() < expireTime) {
@@ -208,9 +285,119 @@
                 }
             } else {
                 document.getElementById('currentToken').textContent = '未设置';
+                document.getElementById('fullToken').textContent = '未设置';
                 document.getElementById('expireTime').textContent = '未设置';
                 document.getElementById('tokenStatus').textContent = '未获取';
                 document.getElementById('tokenStatus').style.color = '#6c757d';
+            }
+        }
+
+        // 复制Token
+        function copyToken() {
+            const token = tokenManager.accessToken;
+            if (token) {
+                navigator.clipboard.writeText(token).then(() => {
+                    showResult('status-result', 'Token已复制到剪贴板', 'success');
+                }).catch(() => {
+                    // 降级方案
+                    const textArea = document.createElement('textarea');
+                    textArea.value = token;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showResult('status-result', 'Token已复制到剪贴板', 'success');
+                });
+            } else {
+                showResult('status-result', '没有可复制的Token', 'error');
+            }
+        }
+
+        // 同步到系统设置
+        async function syncToSettings() {
+            const token = tokenManager.accessToken;
+            if (!token) {
+                showResult('status-result', '没有可同步的Token', 'error');
+                updateSyncStatus('同步失败', 'sync-error');
+                return;
+            }
+
+            try {
+                updateSyncStatus('同步中...', 'sync-pending');
+                
+                // 保存到localStorage，供主页面使用
+                localStorage.setItem('apiKey', token);
+                
+                // 如果主页面存在，直接更新
+                if (window.parent && window.parent !== window) {
+                    try {
+                        const apiKeyInput = window.parent.document.getElementById('api-key');
+                        if (apiKeyInput) {
+                            apiKeyInput.value = token;
+                            showResult('status-result', 'Token已同步到系统设置', 'success');
+                            updateSyncStatus('已同步', 'sync-success');
+                            return;
+                        }
+                    } catch (e) {
+                        console.log('无法直接更新父页面，使用localStorage同步');
+                    }
+                }
+
+                // 通过localStorage同步
+                localStorage.setItem('token_sync_time', Date.now().toString());
+                showResult('status-result', 'Token已保存到localStorage，请在系统设置页面刷新查看', 'success');
+                updateSyncStatus('已同步', 'sync-success');
+                
+            } catch (error) {
+                showResult('status-result', `同步失败: ${error.message}`, 'error');
+                updateSyncStatus('同步失败', 'sync-error');
+            }
+        }
+
+        // 更新同步状态
+        function updateSyncStatus(text, className) {
+            const syncStatus = document.getElementById('syncStatus');
+            syncStatus.textContent = text;
+            syncStatus.className = `sync-status ${className}`;
+        }
+
+        // 开始自动更新
+        function startAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            
+            // 立即执行一次
+            autoRefreshToken();
+            
+            // 每5分钟自动更新一次
+            autoRefreshInterval = setInterval(autoRefreshToken, 5 * 60 * 1000);
+            
+            showResult('status-result', '自动更新已启动，每5分钟更新一次token', 'success');
+        }
+
+        // 停止自动更新
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                showResult('status-result', '自动更新已停止', 'info');
+            }
+        }
+
+        // 自动更新token
+        async function autoRefreshToken() {
+            try {
+                console.log('自动更新token...');
+                const token = await tokenManager.getAccessToken();
+                if (token) {
+                    refreshTokenStatus();
+                    console.log('token自动更新成功');
+                    // 自动同步到系统设置
+                    await syncToSettings();
+                }
+            } catch (error) {
+                console.error('自动更新token失败:', error);
             }
         }
 

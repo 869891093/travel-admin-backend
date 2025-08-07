@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>依赖检查</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .check-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 依赖检查</h1>
+    
+    <div class="check-section">
+        <h3>📋 基础依赖检查</h3>
+        <div id="basic-checks"></div>
+    </div>
+
+    <div class="check-section">
+        <h3>🔧 API对象检查</h3>
+        <div id="api-checks"></div>
+    </div>
+
+    <div class="check-section">
+        <h3>🔑 Token管理器检查</h3>
+        <div id="token-checks"></div>
+    </div>
+
+    <div class="check-section">
+        <h3>⚙️ 配置检查</h3>
+        <div id="config-checks"></div>
+    </div>
+
+    <div class="check-section">
+        <h3>🛠️ 工具函数检查</h3>
+        <div id="utils-checks"></div>
+    </div>
+
+    <div class="check-section">
+        <h3>📊 测试连接</h3>
+        <button onclick="testConnection()">测试API连接</button>
+        <div id="connection-test"></div>
+    </div>
+
+    <!-- 引入Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/token-manager.js"></script>
+    <script src="js/api-real.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/app.js"></script>
+
+    <script>
+        // 页面加载完成后检查依赖
+        window.onload = function() {
+            checkDependencies();
+        };
+
+        function checkDependencies() {
+            // 基础依赖检查
+            const basicChecks = document.getElementById('basic-checks');
+            let basicHtml = '';
+            
+            // 检查Chart.js
+            if (typeof Chart !== 'undefined') {
+                basicHtml += '<div class="status success">✅ Chart.js 已加载</div>';
+            } else {
+                basicHtml += '<div class="status error">❌ Chart.js 未加载</div>';
+            }
+            
+            basicChecks.innerHTML = basicHtml;
+
+            // API对象检查
+            const apiChecks = document.getElementById('api-checks');
+            let apiHtml = '';
+            
+            if (typeof api !== 'undefined') {
+                apiHtml += '<div class="status success">✅ api 对象已定义</div>';
+                apiHtml += `<div class="status info">📝 api 类型: ${api.constructor.name}</div>`;
+                apiHtml += `<div class="status info">🌐 基础URL: ${api.baseUrl}</div>`;
+                apiHtml += `<div class="status info">🔧 环境ID: ${api.envId}</div>`;
+            } else {
+                apiHtml += '<div class="status error">❌ api 对象未定义</div>';
+            }
+            
+            apiChecks.innerHTML = apiHtml;
+
+            // Token管理器检查
+            const tokenChecks = document.getElementById('token-checks');
+            let tokenHtml = '';
+            
+            if (typeof tokenManager !== 'undefined') {
+                tokenHtml += '<div class="status success">✅ tokenManager 已定义</div>';
+                tokenHtml += `<div class="status info">📝 tokenManager 类型: ${tokenManager.constructor.name}</div>`;
+                tokenHtml += `<div class="status info">🔑 AppID: ${tokenManager.appId}</div>`;
+                tokenHtml += `<div class="status info">🔐 AppSecret: ${tokenManager.appSecret ? '已设置' : '未设置'}</div>`;
+            } else {
+                tokenHtml += '<div class="status error">❌ tokenManager 未定义</div>';
+            }
+            
+            tokenChecks.innerHTML = tokenHtml;
+
+            // 配置检查
+            const configChecks = document.getElementById('config-checks');
+            let configHtml = '';
+            
+            if (typeof CONFIG !== 'undefined') {
+                configHtml += '<div class="status success">✅ CONFIG 已定义</div>';
+                configHtml += `<div class="status info">🌐 环境ID: ${CONFIG.envId}</div>`;
+                configHtml += `<div class="status info">🔗 基础URL: ${CONFIG.baseUrl}</div>`;
+                configHtml += `<div class="status info">📄 页面大小: ${CONFIG.pageSize}</div>`;
+            } else {
+                configHtml += '<div class="status error">❌ CONFIG 未定义</div>';
+            }
+            
+            configChecks.innerHTML = configHtml;
+
+            // 工具函数检查
+            const utilsChecks = document.getElementById('utils-checks');
+            let utilsHtml = '';
+            
+            if (typeof Utils !== 'undefined') {
+                utilsHtml += '<div class="status success">✅ Utils 已定义</div>';
+                utilsHtml += '<div class="status info">📝 可用方法: formatDate, formatPrice, generateId, isValidUrl, uploadFile, debounce, throttle</div>';
+            } else {
+                utilsHtml += '<div class="status error">❌ Utils 未定义</div>';
+            }
+            
+            utilsChecks.innerHTML = utilsHtml;
+        }
+
+        async function testConnection() {
+            const testDiv = document.getElementById('connection-test');
+            testDiv.innerHTML = '<div class="status info">🔄 正在测试连接...</div>';
+            
+            try {
+                if (typeof api !== 'undefined') {
+                    const result = await api.testConnection();
+                    if (result.success) {
+                        testDiv.innerHTML = '<div class="status success">✅ API连接成功</div>';
+                    } else {
+                        testDiv.innerHTML = `<div class="status error">❌ API连接失败: ${result.message}</div>`;
+                    }
+                } else {
+                    testDiv.innerHTML = '<div class="status error">❌ api 对象未定义，无法测试连接</div>';
+                }
+            } catch (error) {
+                testDiv.innerHTML = `<div class="status error">❌ 连接测试异常: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html> 

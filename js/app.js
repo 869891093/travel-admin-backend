@@ -12,11 +12,59 @@ class AdminApp {
         console.log('AdminApp 初始化中...');
         this.bindEvents();
         
+        // 自动从localStorage读取同步的Token
+        this.loadSyncedToken();
+        
         // 测试连接
         this.testConnection();
         
         this.loadDashboard();
         console.log('AdminApp 初始化完成');
+    }
+
+    // 加载同步的Token
+    loadSyncedToken() {
+        try {
+            const syncedToken = localStorage.getItem('apiKey');
+            const syncTime = localStorage.getItem('token_sync_time');
+            
+            if (syncedToken && syncTime) {
+                console.log('检测到同步的Token，自动加载到系统设置');
+                
+                // 更新系统设置页面的API密钥输入框
+                const apiKeyInput = document.getElementById('api-key');
+                if (apiKeyInput) {
+                    apiKeyInput.value = syncedToken;
+                    console.log('Token已自动加载到系统设置');
+                }
+                
+                // 更新配置
+                CONFIG.apiKey = syncedToken;
+                
+                // 显示同步状态
+                const syncTimeDate = new Date(parseInt(syncTime));
+                const timeDiff = Math.floor((Date.now() - parseInt(syncTime)) / 1000 / 60); // 分钟
+                console.log(`Token同步时间: ${syncTimeDate.toLocaleString()}, 距今${timeDiff}分钟`);
+                
+                // 更新状态显示
+                const statusElement = document.getElementById('token-sync-status');
+                if (statusElement) {
+                    if (timeDiff < 120) { // 2小时内
+                        statusElement.innerHTML = `<span style="color: #28a745;">✓ Token已同步 (${timeDiff}分钟前)</span>`;
+                    } else {
+                        statusElement.innerHTML = `<span style="color: #ffc107;">⚠ Token同步时间较久 (${timeDiff}分钟前)，建议重新获取</span>`;
+                    }
+                }
+                
+                if (timeDiff < 120) { // 2小时内
+                    showMessage(`Token已自动同步 (${timeDiff}分钟前)`, 'success');
+                } else {
+                    showMessage('Token同步时间较久，建议重新获取', 'warning');
+                }
+            }
+        } catch (error) {
+            console.error('加载同步Token失败:', error);
+        }
     }
 
     async testConnection() {
@@ -1374,4 +1422,43 @@ function batchSetCalendar() {
     }
     
     updateCalendarJSON();
+}
+
+// 刷新同步的Token
+function refreshSyncedToken() {
+    try {
+        const syncedToken = localStorage.getItem('apiKey');
+        const syncTime = localStorage.getItem('token_sync_time');
+        
+        if (syncedToken && syncTime) {
+            // 更新系统设置页面的API密钥输入框
+            const apiKeyInput = document.getElementById('api-key');
+            if (apiKeyInput) {
+                apiKeyInput.value = syncedToken;
+            }
+            
+            // 更新配置
+            CONFIG.apiKey = syncedToken;
+            
+            // 显示同步状态
+            const syncTimeDate = new Date(parseInt(syncTime));
+            const timeDiff = Math.floor((Date.now() - parseInt(syncTime)) / 1000 / 60); // 分钟
+            
+            const statusElement = document.getElementById('token-sync-status');
+            if (statusElement) {
+                if (timeDiff < 120) { // 2小时内
+                    statusElement.innerHTML = `<span style="color: #28a745;">✓ Token已同步 (${timeDiff}分钟前)</span>`;
+                } else {
+                    statusElement.innerHTML = `<span style="color: #ffc107;">⚠ Token同步时间较久 (${timeDiff}分钟前)，建议重新获取</span>`;
+                }
+            }
+            
+            showMessage(`Token已刷新 (${timeDiff}分钟前同步)`, 'success');
+        } else {
+            showMessage('没有找到同步的Token', 'warning');
+        }
+    } catch (error) {
+        console.error('刷新同步Token失败:', error);
+        showMessage('刷新Token失败', 'error');
+    }
 }

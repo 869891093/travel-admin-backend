@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>清理Token数据</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #c82333;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 清理Token数据</h1>
+        
+        <p>这个页面可以帮助您清理所有相关的Token数据，然后重新获取正确的微信Access Token。</p>
+        
+        <div id="current-data">
+            <h3>当前数据状态</h3>
+            <div id="data-status">检查中...</div>
+        </div>
+        
+        <div style="margin: 20px 0;">
+            <button class="btn" onclick="clearAllData()">清理所有Token数据</button>
+            <button class="btn btn-success" onclick="checkData()">重新检查</button>
+        </div>
+        
+        <div id="result" class="result"></div>
+        
+        <div style="margin-top: 20px;">
+            <h3>下一步操作</h3>
+            <ol>
+                <li>点击"清理所有Token数据"按钮</li>
+                <li>打开 <a href="token-config.html" target="_blank">Token配置页面</a></li>
+                <li>输入正确的AppID和AppSecret</li>
+                <li>点击"测试Token获取"</li>
+                <li>验证获取到的Token格式是否正确</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载时检查数据
+        window.onload = function() {
+            checkData();
+        };
+
+        // 检查当前数据
+        function checkData() {
+            const data = {
+                'apiKey': localStorage.getItem('apiKey'),
+                'access_token': localStorage.getItem('access_token'),
+                'token_expire_time': localStorage.getItem('token_expire_time'),
+                'token_sync_time': localStorage.getItem('token_sync_time'),
+                'appId': localStorage.getItem('appId'),
+                'appSecret': localStorage.getItem('appSecret')
+            };
+            
+            let statusHtml = '<ul>';
+            for (const [key, value] of Object.entries(data)) {
+                if (value) {
+                    if (key.includes('token') || key.includes('Token')) {
+                        const displayValue = value.length > 20 ? value.substring(0, 20) + '...' : value;
+                        statusHtml += `<li><strong>${key}:</strong> ${displayValue}</li>`;
+                    } else {
+                        statusHtml += `<li><strong>${key}:</strong> ${value}</li>`;
+                    }
+                } else {
+                    statusHtml += `<li><strong>${key}:</strong> <em>未设置</em></li>`;
+                }
+            }
+            statusHtml += '</ul>';
+            
+            document.getElementById('data-status').innerHTML = statusHtml;
+        }
+
+        // 清理所有数据
+        function clearAllData() {
+            const keysToRemove = [
+                'apiKey',
+                'access_token', 
+                'token_expire_time',
+                'token_sync_time',
+                'appId',
+                'appSecret'
+            ];
+            
+            let removedCount = 0;
+            keysToRemove.forEach(key => {
+                if (localStorage.getItem(key)) {
+                    localStorage.removeItem(key);
+                    removedCount++;
+                }
+            });
+            
+            showResult(`已清理 ${removedCount} 个数据项`, 'success');
+            checkData();
+        }
+
+        // 显示结果
+        function showResult(message, type) {
+            const element = document.getElementById('result');
+            element.className = `result ${type}`;
+            element.textContent = message;
+        }
+    </script>
+</body>
+</html> 

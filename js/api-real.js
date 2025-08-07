@@ -378,4 +378,7 @@ class RealAPI {
             };
         }
     }
-} 
+}
+
+// 创建全局api实例
+const api = new RealAPI(); 
